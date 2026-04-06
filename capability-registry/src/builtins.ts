@@ -1,69 +1,5 @@
-import type { CapabilityDefinition, SemanticValidationResult } from "./types";
-
-const HAI_ADAPTER = "hai-adapter";
-
-/** Structured HAI / particle capabilities (validated only outside ZAKAI). */
-
-export const haiParticleUpdateV1: CapabilityDefinition = {
-  capability: "hai.particle.update",
-  version: "1.0.0",
-  adapter: { key: HAI_ADAPTER, route: "particle.update" },
-  description: "Update HAI particle attributes (UI / adapter structured input)",
-  tags: ["hai", "particle"],
-  input_schema: {
-    type: "object",
-    required: ["particle_id", "attributes"],
-    properties: {
-      particle_id: { type: "string", minLength: 1 },
-      attributes: { type: "object" },
-      timestamp: { type: "string" },
-    },
-    additionalProperties: true,
-  },
-};
-
-export const haiContextSnapshotV1: CapabilityDefinition = {
-  capability: "hai.context.snapshot",
-  version: "1.0.0",
-  adapter: { key: HAI_ADAPTER, route: "context.snapshot" },
-  description: "Snapshot context by scope (filters optional)",
-  tags: ["hai", "context"],
-  input_schema: {
-    type: "object",
-    required: ["scope"],
-    properties: {
-      scope: { type: "string", minLength: 1 },
-      filters: { type: "object" },
-    },
-    additionalProperties: true,
-  },
-};
-
-/** Example v2: stricter attributes (demonstrates version selection in registry tests). */
-export const haiParticleUpdateV2: CapabilityDefinition = {
-  capability: "hai.particle.update",
-  version: "2.0.0",
-  adapter: { key: HAI_ADAPTER, route: "particle.update" },
-  description: "Particle update v2: attributes must include revision",
-  tags: ["hai", "particle"],
-  input_schema: {
-    type: "object",
-    required: ["particle_id", "attributes"],
-    properties: {
-      particle_id: { type: "string", minLength: 1 },
-      attributes: {
-        type: "object",
-        required: ["revision"],
-        properties: {
-          revision: { type: "integer", minimum: 0 },
-        },
-        additionalProperties: true,
-      },
-      timestamp: { type: "string" },
-    },
-    additionalProperties: true,
-  },
-};
+import type { CapabilityRegistry } from "./registry";
+import type { SemanticValidationResult } from "./types";
 
 /** Semantic guard: revision must be a safe small integer (meaning layer; belt over JSON Schema drift). */
 export function semanticParticleUpdateV2(input: unknown): SemanticValidationResult {
@@ -85,6 +21,16 @@ export function semanticParticleUpdateV2(input: unknown): SemanticValidationResu
   if (rev > 1_000_000) {
     return { valid: false, errors: ["attributes.revision out of allowed range"] };
   }
+  const a = attr as Record<string, unknown>;
+  if (Object.prototype.hasOwnProperty.call(a, "hue")) {
+    const hue = a.hue;
+    if (typeof hue !== "number") {
+      return { valid: false, errors: ["attributes.hue must be a number"] };
+    }
+    if (!Number.isFinite(hue) || hue < 0 || hue > 1) {
+      return { valid: false, errors: ["attributes.hue must be a finite number in [0, 1]"] };
+    }
+  }
   return { valid: true };
 }
 
@@ -105,8 +51,11 @@ export function semanticParticleUpdateV1(input: unknown): SemanticValidationResu
   return { valid: true };
 }
 
-export const defaultBuiltinDefinitions: CapabilityDefinition[] = [
-  haiParticleUpdateV1,
-  haiContextSnapshotV1,
-  haiParticleUpdateV2,
-];
+/**
+ * Register host-side semantic validators for capabilities that are **not** expressible as JSON Schema alone.
+ * Capability **definitions** must come from compiled `capabilities/` (single source of truth).
+ */
+export function registerBuiltinSemanticValidators(registry: CapabilityRegistry): void {
+  registry.registerSemanticValidator("hai.particle.update", "1.0.0", semanticParticleUpdateV1);
+  registry.registerSemanticValidator("hai.particle.update", "2.0.0", semanticParticleUpdateV2);
+}

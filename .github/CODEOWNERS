@@ -1,0 +1,16 @@
+# Core substrate and governance files require explicit owner review.
+
+/capability-registry/src/ @harmonicfutures
+/capability-registry/test/ @harmonicfutures
+/capability-registry/examples/openai-draft-pipeline/ @harmonicfutures
+/capability-compiler/ @harmonicfutures
+/capabilities/ @harmonicfutures
+/engine/capability_snapshot.json @harmonicfutures
+/engine/dependency_map.json @harmonicfutures
+/draft-test-harness/server.js @harmonicfutures
+/draft-test-harness/lib/governed-response.mjs @harmonicfutures
+/draft-test-harness/test/governed-response-contract.test.mjs @harmonicfutures
+/docs/CAPABILITY_DEFINITION_TEMPLATE.md @harmonicfutures
+/docs/GOVERNANCE_BASELINE.md @harmonicfutures
+/README.md @harmonicfutures
+/.github/pull_request_template.md @harmonicfutures

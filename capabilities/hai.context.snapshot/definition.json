@@ -1,0 +1,29 @@
+{
+  "adapter": {
+    "key": "hai-adapter",
+    "route": "context.snapshot"
+  },
+  "capability": "hai.context.snapshot",
+  "description": "Snapshot context by scope (filters optional)",
+  "input_schema": {
+    "additionalProperties": true,
+    "properties": {
+      "filters": {
+        "type": "object"
+      },
+      "scope": {
+        "minLength": 1,
+        "type": "string"
+      }
+    },
+    "required": [
+      "scope"
+    ],
+    "type": "object"
+  },
+  "tags": [
+    "context",
+    "hai"
+  ],
+  "version": "1.0.0"
+}

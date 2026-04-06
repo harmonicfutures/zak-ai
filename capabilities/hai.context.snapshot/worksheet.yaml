@@ -1,0 +1,29 @@
+# Source of truth — compile: cd capability-compiler && node dist/cli.js compile ../capabilities/hai.context.snapshot/worksheet.yaml --out ../capabilities
+capability: hai.context.snapshot
+version: 1.0.0
+adapter:
+  key: hai-adapter
+  route: context.snapshot
+execution_class: A
+authority_requirements: none
+description: Snapshot context by scope (filters optional)
+tags:
+  - hai
+  - context
+input_schema:
+  type: object
+  required:
+    - scope
+  properties:
+    scope:
+      type: string
+      minLength: 1
+    filters:
+      type: object
+  additionalProperties: true
+output_schema:
+  scope: string
+  snapshot: object
+golden:
+  input:
+    scope: user/session

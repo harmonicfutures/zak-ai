@@ -1,0 +1,37 @@
+adapter:
+  key: hai-adapter
+  route: time.get
+authority_requirements: none
+capability: hai.time.get
+description: Get current time (optional IANA timezone)
+execution_class: A
+golden:
+  input: {}
+input_schema:
+  additionalProperties: true
+  properties:
+    timezone:
+      minLength: 1
+      type: string
+  type: object
+output_schema:
+  additionalProperties: false
+  properties:
+    detail:
+      type: string
+    error:
+      type: string
+    local_display:
+      type: string
+    timezone:
+      type: string
+    utc_iso:
+      type: string
+  required:
+    - timezone
+    - utc_iso
+  type: object
+tags:
+  - hai
+  - time
+version: 1.0.0

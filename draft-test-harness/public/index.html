@@ -9,16 +9,22 @@
   <h2>ZAK Draft Generator (test only)</h2>
   <p style="max-width: 48rem; color: #444">
     No authority here — model output is hostile input until <code>prepareExecutionRequest</code> passes.
+    Omitted <code>capability_version</code> pins <strong>latest</strong> in the registry (for
+    <code>hai.particle.update</code> that is <strong>2.0.0</strong>: <code>attributes.revision</code> is required).
+    Your <strong>browser IANA timezone</strong> is sent as <code>client_timezone</code> so
+    <code>hai.time.get</code> can target local wall time when the model omits it.
   </p>
 
-  <textarea id="prompt" rows="10" cols="72">You are generating a capability request draft.
+  <textarea id="prompt" rows="12" cols="72">You are generating a capability request draft.
 
 Output ONLY JSON. Top-level keys must be exactly "capability" and "input" — no others.
 
 Rules:
 - capability must be "hai.particle.update"
-- input: particle_id non-empty string, attributes object; attributes.hue if present must be between 0 and 1
-- Example particle_id: "demo-1"
+- input.particle_id: non-empty string (e.g. "demo-1")
+- input.attributes MUST match registry latest (v2): include revision (integer >= 0). You may add hue (number in [0, 1]) if you want; revision is still required.
+
+Example input.attributes: { "revision": 1, "hue": 0.5 }
 </textarea>
   <br /><br />
 
@@ -33,12 +39,18 @@ Rules:
       el.style.color = "#666";
 
       const prompt = document.getElementById("prompt").value;
+      let clientTz = "";
+      try {
+        clientTz = Intl.DateTimeFormat().resolvedOptions().timeZone || "";
+      } catch (_e) {
+        clientTz = "";
+      }
 
       try {
         const res = await fetch("/generate", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ prompt }),
+          body: JSON.stringify({ prompt, client_timezone: clientTz }),
         });
 
         const data = await res.json();

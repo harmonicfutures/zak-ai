@@ -1,0 +1,48 @@
+{
+  "adapter": {
+    "key": "hai-adapter",
+    "route": "particle.update"
+  },
+  "capability": "hai.particle.update",
+  "description": "Particle update v2: attributes must include revision",
+  "input_schema": {
+    "additionalProperties": true,
+    "properties": {
+      "attributes": {
+        "additionalProperties": true,
+        "properties": {
+          "hue": {
+            "maximum": 1,
+            "minimum": 0,
+            "type": "number"
+          },
+          "revision": {
+            "minimum": 0,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "revision"
+        ],
+        "type": "object"
+      },
+      "particle_id": {
+        "minLength": 1,
+        "type": "string"
+      },
+      "timestamp": {
+        "type": "string"
+      }
+    },
+    "required": [
+      "particle_id",
+      "attributes"
+    ],
+    "type": "object"
+  },
+  "tags": [
+    "hai",
+    "particle"
+  ],
+  "version": "2.0.0"
+}

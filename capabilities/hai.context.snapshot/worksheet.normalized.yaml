@@ -1,0 +1,28 @@
+adapter:
+  key: hai-adapter
+  route: context.snapshot
+authority_requirements: none
+capability: hai.context.snapshot
+description: Snapshot context by scope (filters optional)
+execution_class: A
+golden:
+  input:
+    scope: user/session
+input_schema:
+  additionalProperties: true
+  properties:
+    filters:
+      type: object
+    scope:
+      minLength: 1
+      type: string
+  required:
+    - scope
+  type: object
+output_schema:
+  scope: string
+  snapshot: object
+tags:
+  - hai
+  - context
+version: 1.0.0

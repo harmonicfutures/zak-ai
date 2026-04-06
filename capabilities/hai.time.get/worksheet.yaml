@@ -1,0 +1,31 @@
+# Source of truth — edit this file; run: cd capability-compiler && npm run compile:hai-time
+capability: hai.time.get
+version: 1.0.0
+adapter:
+  key: hai-adapter
+  route: time.get
+execution_class: A
+authority_requirements: none
+description: Get current time (optional IANA timezone)
+tags:
+  - hai
+  - time
+input_schema:
+  type: object
+  properties:
+    timezone:
+      type: string
+      minLength: 1
+  additionalProperties: true
+output_schema:
+  type: object
+  required: [timezone, utc_iso]
+  properties:
+    timezone: { type: string }
+    utc_iso: { type: string }
+    local_display: { type: string }
+    error: { type: string }
+    detail: { type: string }
+  additionalProperties: false
+golden:
+  input: {}

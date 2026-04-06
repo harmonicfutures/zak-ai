@@ -49,16 +49,51 @@ function extractResponsesApiText(response) {
   return null;
 }
 
+/** Chat Completions `message.content`: string or array of text parts (OpenRouter / newer APIs). */
+function extractChatCompletionContent(message) {
+  if (!message || message.content == null) return null;
+  const c = message.content;
+  if (typeof c === "string") {
+    return c.length > 0 ? c : null;
+  }
+  if (Array.isArray(c)) {
+    const out = c
+      .map((part) => {
+        if (typeof part === "string") return part;
+        if (part && typeof part === "object") {
+          if (typeof part.text === "string") return part.text;
+          if (part.type === "text" && typeof part.text === "string") return part.text;
+        }
+        return "";
+      })
+      .join("");
+    return out.length > 0 ? out : null;
+  }
+  return null;
+}
+
+async function openRouterChatCompletionJson(ctx, userPrompt, useJsonObjectMode) {
+  const body = {
+    model: ctx.model,
+    messages: [{ role: "user", content: userPrompt }],
+  };
+  if (useJsonObjectMode) {
+    body.response_format = { type: "json_object" };
+  }
+  const res = await ctx.client.chat.completions.create(body);
+  const raw = extractChatCompletionContent(res.choices?.[0]?.message);
+  const text = raw?.trim() ?? "";
+  return text.length > 0 ? text : null;
+}
+
 /** JSON object mode (strict JSON in reply). */
 export async function llmJsonObject(ctx, userPrompt) {
   if (ctx.useOpenRouter) {
-    const res = await ctx.client.chat.completions.create({
-      model: ctx.model,
-      messages: [{ role: "user", content: userPrompt }],
-      response_format: { type: "json_object" },
-    });
-    const text = res.choices?.[0]?.message?.content;
-    return typeof text === "string" ? text : null;
+    let text = await openRouterChatCompletionJson(ctx, userPrompt, true);
+    if (!text) {
+      text = await openRouterChatCompletionJson(ctx, userPrompt, false);
+    }
+    return text;
   }
 
   const response = await ctx.client.responses.create({
@@ -69,15 +104,14 @@ export async function llmJsonObject(ctx, userPrompt) {
   return extractResponsesApiText(response);
 }
 
-/** Plain text reply. */
+/** Plain text reply. No response_format / JSON mode. */
 export async function llmText(ctx, userPrompt) {
   if (ctx.useOpenRouter) {
     const res = await ctx.client.chat.completions.create({
       model: ctx.model,
       messages: [{ role: "user", content: userPrompt }],
     });
-    const text = res.choices?.[0]?.message?.content;
-    return typeof text === "string" ? text : null;
+    return extractChatCompletionContent(res.choices?.[0]?.message);
   }
 
   const response = await ctx.client.responses.create({

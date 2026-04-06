@@ -4,7 +4,8 @@
   "type": "module",
   "description": "Thin browser test UI: prompt → OpenAI → draft → prepareExecutionRequest (no authority).",
   "scripts": {
-    "start": "node server.js"
+    "start": "node server.js",
+    "test": "node --test test/"
   },
   "dependencies": {
     "dotenv": "^16.4.7",

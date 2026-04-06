@@ -11,8 +11,19 @@
  *   cd ../../ && npm run build && cd examples/openai-draft-pipeline && npm install && npm start
  */
 
+import { existsSync } from "node:fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 import OpenAI from "openai";
-import { createRegistryWithBuiltins, prepareExecutionRequest } from "../../dist/index.js";
+import {
+  createFileGovernanceRuntime,
+  createRegistryFromCompiledCapabilities,
+  prepareExecutionRequest,
+  resolveAuthorityContext,
+} from "../../dist/index.js";
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const CAPABILITIES_ROOT = path.resolve(__dirname, "..", "..", "..", "capabilities");
 
 const MODEL = process.env.OPENAI_MODEL ?? "gpt-4o";
 const CONSTITUTION_ID = process.env.ZAK_CONSTITUTION_ID ?? "zak-default";
@@ -86,7 +97,16 @@ async function generateDraft() {
   return strictDraftShape(parsed);
 }
 
-const registry = createRegistryWithBuiltins();
+if (!existsSync(CAPABILITIES_ROOT)) {
+  console.error("Missing compiled capabilities at", CAPABILITIES_ROOT);
+  process.exit(1);
+}
+const registry = createRegistryFromCompiledCapabilities(CAPABILITIES_ROOT);
+const governanceRuntime = createFileGovernanceRuntime({
+  rootDir: path.join(__dirname, ".governance"),
+  environmentId: "openai-draft-pipeline",
+  runtimeId: "openai-draft-pipeline",
+});
 
 try {
   const draftPayload = await generateDraft();
@@ -98,7 +118,14 @@ try {
     context: { constitution_id: CONSTITUTION_ID },
   };
 
-  const prep = prepareExecutionRequest(registry, draft);
+  const prep = prepareExecutionRequest(registry, draft, {
+    authorityContext: resolveAuthorityContext("none", {
+      source: "example-cli",
+      evaluated_at: new Date().toISOString(),
+      session_id: "openai-draft-pipeline",
+    }),
+    governanceRuntime,
+  });
 
   if (prep.ok) {
     console.log(JSON.stringify({ ok: true, request: prep.request, adapter: prep.adapter }, null, 2));

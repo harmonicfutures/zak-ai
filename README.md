@@ -4,6 +4,15 @@ Constitutional execution substrate.
 
 **Tooling requires Node.js 18+** (20 LTS recommended). Node 10/12 will fail on `import`, `tsup`, and `openai`. Use [nvm](https://github.com/nvm-sh/nvm): `nvm install` / `nvm use` (see `.nvmrc`).
 
+## Documentation
+
+- Capability Definition Template (required fields, validation, adapter contract, output schema, trace): [`docs/CAPABILITY_DEFINITION_TEMPLATE.md`](docs/CAPABILITY_DEFINITION_TEMPLATE.md)
+- Governance baseline and frozen invariants: [`docs/GOVERNANCE_BASELINE.md`](docs/GOVERNANCE_BASELINE.md)
+- Capability compiler (YAML worksheet → `definition.json`, hash, golden tests): [`capability-compiler/`](capability-compiler/) — run `npm test` there after `npm install` + `npm run build`; use `cap-compile compile …` / `verify` as in Section 9 of the template.
+- Host registry: `createRegistryFromCompiledCapabilities(capabilitiesRoot)` loads **only** `capabilities/` (flat `…/<id>/definition.json` or versioned `…/<id>/<semver>/definition.json`), verifies each `definition.hash` at load, registers each `meta.json` (authority + execution class + `output_schema`), then registers built-in **semantic** validators (e.g. particle). Optional `ZAK_CAPABILITIES_DIR`; no duplicate TS definitions.
+- Admission / output: `prepareExecutionRequest(registry, draft, { authorityContext, governanceRuntime })` compares a provenance-backed host authority resolution to `authority_requirements` in meta (fail closed) and uses the durable governance runtime for replay enforcement. `executeGovernedCapability(...)` is the single runtime path: it validates output, persists chained receipts, and records durable replay state. Harness: optional `ZAK_ADMISSION_AUTHORITY` = `none` | `standard` | `elevated` | `continuous_resonance`.
+- Startup blockers: compiled meta completeness plus governance receipt-store / replay-ledger availability. Execution blockers: adapter failure, output validation failure, replay blocking, and receipt persistence failure.
+
 ## Core model
 
 - ZAKAI: stateless execution

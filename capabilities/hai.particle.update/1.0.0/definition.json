@@ -1,0 +1,33 @@
+{
+  "adapter": {
+    "key": "hai-adapter",
+    "route": "particle.update"
+  },
+  "capability": "hai.particle.update",
+  "description": "Update HAI particle attributes (UI / adapter structured input)",
+  "input_schema": {
+    "additionalProperties": true,
+    "properties": {
+      "attributes": {
+        "type": "object"
+      },
+      "particle_id": {
+        "minLength": 1,
+        "type": "string"
+      },
+      "timestamp": {
+        "type": "string"
+      }
+    },
+    "required": [
+      "particle_id",
+      "attributes"
+    ],
+    "type": "object"
+  },
+  "tags": [
+    "hai",
+    "particle"
+  ],
+  "version": "1.0.0"
+}

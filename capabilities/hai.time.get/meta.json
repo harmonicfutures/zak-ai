@@ -1,0 +1,32 @@
+{
+  "authority_requirements": "none",
+  "compiler_version": "0.1.0",
+  "execution_class": "A",
+  "generated_by": "@zak/capability-compiler",
+  "output_schema": {
+    "additionalProperties": false,
+    "properties": {
+      "detail": {
+        "type": "string"
+      },
+      "error": {
+        "type": "string"
+      },
+      "local_display": {
+        "type": "string"
+      },
+      "timezone": {
+        "type": "string"
+      },
+      "utc_iso": {
+        "type": "string"
+      }
+    },
+    "required": [
+      "timezone",
+      "utc_iso"
+    ],
+    "type": "object"
+  },
+  "template_version": "1.2.1"
+}

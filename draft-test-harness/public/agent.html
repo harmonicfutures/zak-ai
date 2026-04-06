@@ -16,13 +16,15 @@
   <p><a href="/">← ZAK draft harness</a></p>
   <h2>Execution loop (pre-ZAK)</h2>
   <p style="color: #444">
-    Intent → decision JSON → strict validation → <code>echo</code> tool or direct answer → final text.
-    Truth lives in <strong>raw JSON</strong>; the friendly panel is theatre.
+    Inputs are classified as <strong>conversation</strong> (plain chat, no tools) or
+    <strong>execution</strong> (decision JSON → strict validation → <code>echo</code> or direct reply).
+    Truth in execution mode lives in <strong>raw JSON</strong>; the friendly panel is theatre.
   </p>
 
-  <textarea id="prompt" rows="8" placeholder="Your request…">Say hello and use the echo tool with text "probe-1"</textarea>
+  <textarea id="prompt" rows="8" placeholder="Your request…">Say hello and call the echo tool with text "probe-1"</textarea>
   <div class="row">
     <button type="button" id="go">Run loop</button>
+    <span id="modeLabel" style="margin-left: 1rem; font-size: 0.85rem; color: #555;"></span>
     <label class="row" style="display:inline-block;margin-left:1rem">
       <input type="checkbox" id="rawToggle" /> Show raw JSON
     </label>
@@ -31,7 +33,7 @@
   <h3>Final (surface)</h3>
   <div id="final"></div>
 
-  <h3>Trace</h3>
+  <h3 id="traceHeading">Trace</h3>
   <pre id="trace"></pre>
 
   <div id="rawBox" style="display: none;">
@@ -42,6 +44,8 @@
   <script>
     const finalEl = document.getElementById("final");
     const traceEl = document.getElementById("trace");
+    const traceHeading = document.getElementById("traceHeading");
+    const modeLabel = document.getElementById("modeLabel");
     const rawEl = document.getElementById("raw");
     const rawBox = document.getElementById("rawBox");
     const rawToggle = document.getElementById("rawToggle");
@@ -55,6 +59,9 @@
       traceEl.textContent = "";
       rawEl.textContent = "";
       finalEl.style.color = "#666";
+      modeLabel.textContent = "";
+      traceHeading.style.display = "block";
+      traceEl.style.display = "block";
 
       const prompt = document.getElementById("prompt").value;
       try {
@@ -65,15 +72,27 @@
         });
         const data = await res.json();
         rawEl.textContent = JSON.stringify(data, null, 2);
-        traceEl.textContent = JSON.stringify(data.trace ?? [], null, 2);
+        const mode = data.mode ?? (data.trace?.[0]?.mode) ?? "";
+        modeLabel.textContent = mode ? `mode: ${mode}` : "";
+
+        if (data.mode === "conversation" && data.ok) {
+          traceHeading.style.display = "none";
+          traceEl.style.display = "none";
+        } else {
+          traceHeading.style.display = "block";
+          traceEl.style.display = "block";
+          traceEl.textContent = JSON.stringify(data.trace ?? [], null, 2);
+        }
 
         if (data.ok) {
           finalEl.style.color = "darkgreen";
           finalEl.textContent = data.final ?? "(no final)";
         } else {
           finalEl.style.color = "darkred";
-          finalEl.textContent = `[${data.stage}] ${data.error ?? "failed"}\n` +
-            (data.raw ? String(data.raw).slice(0, 500) : "");
+          let errStr = typeof data.error === "string" ? data.error : JSON.stringify(data.error ?? "");
+          finalEl.textContent = `[${data.stage}] ${errStr}\n` +
+            (data.decision ? JSON.stringify(data.decision, null, 2).slice(0, 800) : "") +
+            (data.raw && !data.decision ? String(data.raw).slice(0, 500) : "");
         }
       } catch (e) {
         finalEl.style.color = "darkred";

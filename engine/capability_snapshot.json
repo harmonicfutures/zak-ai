@@ -9,6 +9,7 @@
     { "capability": "memory.write", "version": "1.0.0" },
     { "capability": "hai.particle.update", "version": "1.0.0" },
     { "capability": "hai.particle.update", "version": "2.0.0" },
-    { "capability": "hai.context.snapshot", "version": "1.0.0" }
+    { "capability": "hai.context.snapshot", "version": "1.0.0" },
+    { "capability": "hai.time.get", "version": "1.0.0" }
   ]
 }

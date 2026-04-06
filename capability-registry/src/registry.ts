@@ -1,3 +1,4 @@
+import type { CapabilityCompiledMeta } from "./capability-meta";
 import type {
   CapabilityDefinition,
   SemanticValidator,
@@ -16,6 +17,7 @@ export class CapabilityRegistry {
   private readonly byKey = new Map<string, CapabilityDefinition>();
   private readonly versionsByCapability = new Map<string, Set<string>>();
   private readonly semanticByKey = new Map<string, SemanticValidator>();
+  private readonly metaByKey = new Map<string, CapabilityCompiledMeta>();
 
   registerCapability(definition: CapabilityDefinition): void {
     const key = this.key(definition.capability, definition.version);
@@ -30,6 +32,15 @@ export class CapabilityRegistry {
     }
     set.add(definition.version);
     compileSchema(definition.capability, definition.version, definition.input_schema);
+  }
+
+  /** Governance metadata from compiler `meta.json` (admission + output schema). Not hashed. */
+  registerCapabilityMeta(capability: string, version: string, meta: CapabilityCompiledMeta): void {
+    this.metaByKey.set(this.key(capability, version), meta);
+  }
+
+  getCapabilityMeta(capability: string, version: string): CapabilityCompiledMeta | undefined {
+    return this.metaByKey.get(this.key(capability, version));
   }
 
   /**

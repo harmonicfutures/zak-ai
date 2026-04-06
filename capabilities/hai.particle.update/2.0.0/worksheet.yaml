@@ -1,0 +1,48 @@
+# Multi-version layout — use: cap-compile compile ... --nested-version
+capability: hai.particle.update
+version: 2.0.0
+adapter:
+  key: hai-adapter
+  route: particle.update
+execution_class: B
+authority_requirements: none
+side_effect_tier: low
+idempotency: none
+replay_behavior: blocked
+description: "Particle update v2: attributes must include revision"
+tags:
+  - hai
+  - particle
+input_schema:
+  type: object
+  required:
+    - particle_id
+    - attributes
+  properties:
+    particle_id:
+      type: string
+      minLength: 1
+    attributes:
+      type: object
+      required:
+        - revision
+      properties:
+        revision:
+          type: integer
+          minimum: 0
+        hue:
+          type: number
+          minimum: 0
+          maximum: 1
+      additionalProperties: true
+    timestamp:
+      type: string
+  additionalProperties: true
+output_schema:
+  ok: string
+golden:
+  input:
+    particle_id: x
+    attributes:
+      revision: 1
+      hue: 0.5

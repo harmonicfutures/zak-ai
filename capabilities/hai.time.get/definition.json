@@ -1,0 +1,23 @@
+{
+  "adapter": {
+    "key": "hai-adapter",
+    "route": "time.get"
+  },
+  "capability": "hai.time.get",
+  "description": "Get current time (optional IANA timezone)",
+  "input_schema": {
+    "additionalProperties": true,
+    "properties": {
+      "timezone": {
+        "minLength": 1,
+        "type": "string"
+      }
+    },
+    "type": "object"
+  },
+  "tags": [
+    "hai",
+    "time"
+  ],
+  "version": "1.0.0"
+}

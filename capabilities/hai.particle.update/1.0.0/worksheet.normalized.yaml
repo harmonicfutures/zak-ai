@@ -1,0 +1,35 @@
+adapter:
+  key: hai-adapter
+  route: particle.update
+authority_requirements: none
+capability: hai.particle.update
+description: Update HAI particle attributes (UI / adapter structured input)
+execution_class: B
+golden:
+  input:
+    attributes:
+      hue: 0.5
+    particle_id: demo-1
+idempotency: none
+input_schema:
+  additionalProperties: true
+  properties:
+    attributes:
+      type: object
+    particle_id:
+      minLength: 1
+      type: string
+    timestamp:
+      type: string
+  required:
+    - particle_id
+    - attributes
+  type: object
+output_schema:
+  ok: string
+replay_behavior: blocked
+side_effect_tier: low
+tags:
+  - hai
+  - particle
+version: 1.0.0

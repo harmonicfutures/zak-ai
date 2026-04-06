@@ -82,14 +82,16 @@
         "memory.read",
         "memory.write",
         "hai.particle.update",
-        "hai.context.snapshot"
+        "hai.context.snapshot",
+        "hai.time.get"
       ],
       "sentry": [
         "execute.kernel_bridge",
         "memory.read",
         "memory.write",
         "hai.particle.update",
-        "hai.context.snapshot"
+        "hai.context.snapshot",
+        "hai.time.get"
       ]
     }
   },

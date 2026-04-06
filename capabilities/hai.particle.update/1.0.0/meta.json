@@ -1,0 +1,19 @@
+{
+  "authority_requirements": "none",
+  "compiler_version": "0.1.0",
+  "execution_class": "B",
+  "generated_by": "@zak/capability-compiler",
+  "idempotency": "none",
+  "output_schema": {
+    "additionalProperties": false,
+    "properties": {
+      "ok": {
+        "type": "string"
+      }
+    },
+    "type": "object"
+  },
+  "replay_behavior": "blocked",
+  "side_effect_tier": "low",
+  "template_version": "1.2.1"
+}
