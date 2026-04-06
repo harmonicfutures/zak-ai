@@ -47,7 +47,7 @@ cd capability-registry && npm run build && cd examples/openai-draft-pipeline && 
 
 ### Browser test harness (`draft-test-harness/`)
 
-Same pipeline with a **dumb** HTML UI: `POST /generate` runs the model, then **`prepareExecutionRequest`**. Open **`http://localhost:3000`** after starting the server (served from `public/` — no `file://` CORS issues).
+Same pipeline with a **dumb** HTML UI: `POST /generate` runs the model, then **`prepareExecutionRequest`**. Open **`http://localhost:3000`** after starting the server (served from `public/` — no `file://` CORS issues). **`/agent.html`** runs the pre-ZAK execution loop (strict decision JSON + fake `echo` tool).
 
 ```bash
 export OPENAI_API_KEY="…"

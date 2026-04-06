@@ -20,6 +20,11 @@ import {
   createRegistryWithBuiltins,
   prepareExecutionRequest,
 } from "../capability-registry/dist/index.js";
+import {
+  AGENT_DECISION_INSTRUCTIONS,
+  runToolEcho,
+  validateDecision,
+} from "./lib/agent-loop.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -142,6 +147,129 @@ app.post("/generate", async (req, res) => {
       ok: false,
       stage: "server",
       error: err?.message ?? String(err),
+    });
+  }
+});
+
+/**
+ * Execution sandbox (pre-ZAK): prompt → decision JSON → validate → tool or direct → final.
+ * Maps loosely to: decision ≈ admission intent, tool ≈ capability, validation ≈ fail-closed.
+ */
+app.post("/agent/run", async (req, res) => {
+  const trace = [];
+
+  try {
+    if (!process.env.OPENAI_API_KEY) {
+      return res.status(500).json({
+        ok: false,
+        stage: "config",
+        error: "OPENAI_API_KEY is not set",
+        trace,
+      });
+    }
+
+    const { prompt } = req.body;
+    if (typeof prompt !== "string" || !prompt.trim()) {
+      return res.status(400).json({ ok: false, stage: "request", error: "prompt_required", trace });
+    }
+
+    const decisionInput = `${AGENT_DECISION_INSTRUCTIONS}\n\nUser request:\n${prompt.trim()}`;
+    const decisionRes = await client.responses.create({
+      model: MODEL,
+      input: decisionInput,
+      text: { format: { type: "json_object" } },
+    });
+
+    const decisionText = extractResponseText(decisionRes);
+    trace.push({ step: "decision_raw", ok: Boolean(decisionText), model: MODEL });
+
+    if (!decisionText) {
+      return res.json({
+        ok: false,
+        stage: "decision_empty",
+        error: "model_returned_no_text",
+        trace,
+      });
+    }
+
+    let decisionParsed;
+    try {
+      decisionParsed = JSON.parse(decisionText);
+    } catch {
+      return res.json({
+        ok: false,
+        stage: "decision_parse",
+        error: "invalid_json",
+        raw: decisionText,
+        trace,
+      });
+    }
+
+    const vErr = validateDecision(decisionParsed);
+    trace.push({ step: "decision_validated", ok: vErr === null, decision: decisionParsed });
+    if (vErr !== null) {
+      return res.json({
+        ok: false,
+        stage: "decision_rejected",
+        error: vErr,
+        decision: decisionParsed,
+        trace,
+      });
+    }
+
+    if (decisionParsed.decision === "respond_directly") {
+      trace.push({
+        step: "final",
+        path: "respond_directly",
+        text: decisionParsed.message,
+      });
+      return res.json({
+        ok: true,
+        stage: "done",
+        final: decisionParsed.message,
+        trace,
+        raw: { decision: decisionParsed, tool_result: null },
+      });
+    }
+
+    const toolResult = runToolEcho(decisionParsed.arguments);
+    trace.push({ step: "tool", ...toolResult });
+
+    const finalizeInput = `The user asked:\n${prompt.trim()}\n\nThe echo tool was invoked and returned this JSON:\n${JSON.stringify(
+      toolResult.output
+    )}\n\nWrite a single short plain-text reply to the user that incorporates this result. No JSON, no bullet meta-commentary.`;
+    const finalRes = await client.responses.create({
+      model: MODEL,
+      input: finalizeInput,
+    });
+    const finalText = extractResponseText(finalRes)?.trim() ?? "";
+    trace.push({ step: "finalize_model", ok: finalText.length > 0 });
+
+    if (!finalText) {
+      return res.json({
+        ok: false,
+        stage: "finalize_empty",
+        error: "model_returned_no_final_text",
+        decision: decisionParsed,
+        tool_result: toolResult,
+        trace,
+      });
+    }
+
+    return res.json({
+      ok: true,
+      stage: "done",
+      final: finalText,
+      trace,
+      raw: { decision: decisionParsed, tool_result: toolResult },
+    });
+  } catch (err) {
+    trace.push({ step: "server_error", error: err?.message ?? String(err) });
+    return res.status(500).json({
+      ok: false,
+      stage: "server",
+      error: err?.message ?? String(err),
+      trace,
     });
   }
 });

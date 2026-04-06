@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Execution agent sandbox</title>
+  <style>
+    body { font-family: system-ui, sans-serif; max-width: 52rem; margin: 1rem auto; padding: 0 1rem; }
+    textarea { width: 100%; box-sizing: border-box; font-family: inherit; }
+    pre { background: #f4f4f4; padding: 0.75rem; overflow: auto; font-size: 0.85rem; }
+    .row { margin: 0.5rem 0; }
+    a { color: #06c; }
+    #final { min-height: 2rem; white-space: pre-wrap; }
+  </style>
+</head>
+<body>
+  <p><a href="/">← ZAK draft harness</a></p>
+  <h2>Execution loop (pre-ZAK)</h2>
+  <p style="color: #444">
+    Intent → decision JSON → strict validation → <code>echo</code> tool or direct answer → final text.
+    Truth lives in <strong>raw JSON</strong>; the friendly panel is theatre.
+  </p>
+
+  <textarea id="prompt" rows="8" placeholder="Your request…">Say hello and use the echo tool with text "probe-1"</textarea>
+  <div class="row">
+    <button type="button" id="go">Run loop</button>
+    <label class="row" style="display:inline-block;margin-left:1rem">
+      <input type="checkbox" id="rawToggle" /> Show raw JSON
+    </label>
+  </div>
+
+  <h3>Final (surface)</h3>
+  <div id="final"></div>
+
+  <h3>Trace</h3>
+  <pre id="trace"></pre>
+
+  <div id="rawBox" style="display: none;">
+    <h3>Raw response</h3>
+    <pre id="raw"></pre>
+  </div>
+
+  <script>
+    const finalEl = document.getElementById("final");
+    const traceEl = document.getElementById("trace");
+    const rawEl = document.getElementById("raw");
+    const rawBox = document.getElementById("rawBox");
+    const rawToggle = document.getElementById("rawToggle");
+
+    rawToggle.onchange = () => {
+      rawBox.style.display = rawToggle.checked ? "block" : "none";
+    };
+
+    document.getElementById("go").onclick = async () => {
+      finalEl.textContent = "…";
+      traceEl.textContent = "";
+      rawEl.textContent = "";
+      finalEl.style.color = "#666";
+
+      const prompt = document.getElementById("prompt").value;
+      try {
+        const res = await fetch("/agent/run", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ prompt }),
+        });
+        const data = await res.json();
+        rawEl.textContent = JSON.stringify(data, null, 2);
+        traceEl.textContent = JSON.stringify(data.trace ?? [], null, 2);
+
+        if (data.ok) {
+          finalEl.style.color = "darkgreen";
+          finalEl.textContent = data.final ?? "(no final)";
+        } else {
+          finalEl.style.color = "darkred";
+          finalEl.textContent = `[${data.stage}] ${data.error ?? "failed"}\n` +
+            (data.raw ? String(data.raw).slice(0, 500) : "");
+        }
+      } catch (e) {
+        finalEl.style.color = "darkred";
+        finalEl.textContent = String(e);
+      }
+    };
+  </script>
+</body>
+</html>
