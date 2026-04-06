@@ -165,6 +165,7 @@ function chainKeyFor(runtime: GovernanceRuntimeOptions, authority: AuthorityCont
     `runtime:${runtime.runtimeId}`,
     `session:${authority.session_id ?? "-"}`,
     `subject:${authority.subject_id ?? "-"}`,
+    `authctx:${authority.authority_context_id ?? "-"}`,
   ].join("|");
 }
 

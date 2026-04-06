@@ -17,6 +17,8 @@ export interface AuthorityContext {
   evaluated_at: string;
   session_id?: string;
   subject_id?: string;
+  /** Host-trusted slice of authority within a session (e.g. arc / task context); optional lineage dimension. */
+  authority_context_id?: string;
 }
 
 const ADMISSION_RANK: Record<AdmissionAuthorityLevel, number> = {
@@ -90,6 +92,13 @@ export function validateAuthorityContext(authority: AuthorityContext | undefined
   if (typeof authority.evaluated_at !== "string" || authority.evaluated_at.trim().length === 0) {
     errors.push({ message: "authorityContext.evaluated_at must be a non-empty string" });
   }
+  if (
+    authority.authority_context_id !== undefined &&
+    (typeof authority.authority_context_id !== "string" ||
+      authority.authority_context_id.trim().length === 0)
+  ) {
+    errors.push({ message: "authorityContext.authority_context_id must be a non-empty string when set" });
+  }
   return errors;
 }
 
@@ -103,6 +112,9 @@ export function resolveAuthorityContext(
     evaluated_at: input?.evaluated_at ?? new Date().toISOString(),
     ...(input?.session_id ? { session_id: input.session_id } : {}),
     ...(input?.subject_id ? { subject_id: input.subject_id } : {}),
+    ...(input?.authority_context_id?.trim()
+      ? { authority_context_id: input.authority_context_id.trim() }
+      : {}),
   };
 }
 
@@ -120,12 +132,19 @@ export function resolveExecutionAuthorityContext(
     typeof ctx.subject_id === "string" && ctx.subject_id.trim().length > 0
       ? ctx.subject_id.trim()
       : seed?.subject_id;
+  const authority_context_id =
+    typeof ctx.authority_context_id === "string" && ctx.authority_context_id.trim().length > 0
+      ? ctx.authority_context_id.trim()
+      : seed?.authority_context_id?.trim()
+        ? seed.authority_context_id.trim()
+        : undefined;
   return {
     resolved_authority_level: seed?.resolved_authority_level ?? "none",
     source: `resolved:${seed?.source ?? "host"}`,
     evaluated_at: runtime.now(),
     ...(session_id ? { session_id } : {}),
     ...(subject_id ? { subject_id } : {}),
+    ...(authority_context_id ? { authority_context_id } : {}),
   };
 }
 

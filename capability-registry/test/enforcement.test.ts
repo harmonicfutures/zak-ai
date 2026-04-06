@@ -11,6 +11,7 @@ import {
   parseCapabilityCompiledMeta,
   prepareExecutionRequest,
   resolveAuthorityContext,
+  resolveExecutionAuthorityContext,
   validateAdapterOutput,
   validateAdapterOutputForCapability,
 } from "../src/index";
@@ -252,6 +253,61 @@ describe("admission authority + class policy", () => {
     });
     expect(errs.some((e) => e.message.includes("authorityContext.source"))).toBe(true);
     expect(errs.some((e) => e.message.includes("authorityContext.evaluated_at"))).toBe(true);
+  });
+});
+
+describe("resolveExecutionAuthorityContext", () => {
+  it("carries authority_context_id from draft.context into resolved authority", () => {
+    const { runtime, cleanup } = makeRuntime();
+    try {
+      const resolved = resolveExecutionAuthorityContext(
+        {
+          capability: "hai.time.get",
+          input: {},
+          context: {
+            constitution_id: "t",
+            session_id: "sess-1",
+            subject_id: "sub-1",
+            authority_context_id: "arc-alpha",
+          },
+        },
+        runtime,
+        resolveAuthorityContext("none", {
+          source: "seed",
+          evaluated_at: "2026-04-06T12:00:00.000Z",
+        }),
+      );
+      expect(resolved.session_id).toBe("sess-1");
+      expect(resolved.subject_id).toBe("sub-1");
+      expect(resolved.authority_context_id).toBe("arc-alpha");
+    } finally {
+      cleanup();
+    }
+  });
+
+  it("prefers draft.context authority_context_id over seed", () => {
+    const { runtime, cleanup } = makeRuntime();
+    try {
+      const resolved = resolveExecutionAuthorityContext(
+        {
+          capability: "hai.time.get",
+          input: {},
+          context: {
+            constitution_id: "t",
+            authority_context_id: "from-draft",
+          },
+        },
+        runtime,
+        resolveAuthorityContext("none", {
+          source: "seed",
+          evaluated_at: "2026-04-06T12:00:00.000Z",
+          authority_context_id: "from-seed",
+        }),
+      );
+      expect(resolved.authority_context_id).toBe("from-draft");
+    } finally {
+      cleanup();
+    }
   });
 });
 
