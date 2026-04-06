@@ -2,6 +2,8 @@
 
 Constitutional execution substrate.
 
+**Tooling requires Node.js 18+** (20 LTS recommended). Node 10/12 will fail on `import`, `tsup`, and `openai`. Use [nvm](https://github.com/nvm-sh/nvm): `nvm install` / `nvm use` (see `.nvmrc`).
+
 ## Core model
 
 - ZAKAI: stateless execution
