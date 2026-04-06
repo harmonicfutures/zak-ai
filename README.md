@@ -45,6 +45,8 @@ export OPENAI_API_KEY="…"
 cd capability-registry && npm run build && cd examples/openai-draft-pipeline && npm install && npm start
 ```
 
+For the **browser harness**, you can use **OpenRouter** instead: copy `draft-test-harness/sample.env` to `draft-test-harness/.env`, set `OPENROUTER_API_KEY`, or export it; default model is `openrouter/free`.
+
 ### Browser test harness (`draft-test-harness/`)
 
 Same pipeline with a **dumb** HTML UI: `POST /generate` runs the model, then **`prepareExecutionRequest`**. Open **`http://localhost:3000`** after starting the server (served from `public/` — no `file://` CORS issues). **`/agent.html`** runs the pre-ZAK execution loop (strict decision JSON + fake `echo` tool).

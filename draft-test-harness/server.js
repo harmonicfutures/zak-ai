@@ -2,8 +2,10 @@
  * Thin test harness only: browser → API → model → registry gate.
  * Not a product surface; no membrane authority here.
  *
- *   export OPENAI_API_KEY="..."
- *   optional: OPENAI_MODEL, ZAK_CONSTITUTION_ID
+ * LLM:
+ *   - Set OPENROUTER_API_KEY + optional OPENROUTER_MODEL (default openrouter/free) for testing.
+ *   - Or OPENAI_API_KEY + OPENAI_MODEL when OPENROUTER_API_KEY is unset.
+ *   - Optional .env in this directory (loaded via dotenv); see sample.env.
  *
  *   cd ../capability-registry && npm run build
  *   cd ../draft-test-harness && npm install && npm start
@@ -11,8 +13,8 @@
  * Open http://localhost:3000/
  */
 
+import "dotenv/config";
 import express from "express";
-import OpenAI from "openai";
 import path from "path";
 import { fileURLToPath } from "url";
 
@@ -25,6 +27,7 @@ import {
   runToolEcho,
   validateDecision,
 } from "./lib/agent-loop.mjs";
+import { createHarnessLlm, hasLlmCredentials, llmJsonObject, llmText } from "./lib/llm.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -32,12 +35,8 @@ const app = express();
 app.use(express.json({ limit: "512kb" }));
 app.use(express.static(path.join(__dirname, "public")));
 
-const client = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
-
+const llm = createHarnessLlm();
 const registry = createRegistryWithBuiltins();
-const MODEL = process.env.OPENAI_MODEL ?? "gpt-4o";
 const CONSTITUTION_ID = process.env.ZAK_CONSTITUTION_ID ?? "zak-default";
 
 function strictDraftShape(parsed) {
@@ -57,25 +56,15 @@ function strictDraftShape(parsed) {
   return parsed;
 }
 
-function extractResponseText(response) {
-  if (typeof response.output_text === "string" && response.output_text.length > 0) {
-    return response.output_text;
-  }
-  const first = response.output?.[0];
-  const content = first?.content?.[0];
-  if (content?.text != null && typeof content.text === "string") {
-    return content.text;
-  }
-  return null;
-}
-
 app.post("/generate", async (req, res) => {
   try {
-    if (!process.env.OPENAI_API_KEY) {
+    if (!hasLlmCredentials(llm)) {
       return res.status(500).json({
         ok: false,
         stage: "config",
-        error: "OPENAI_API_KEY is not set",
+        error: llm.useOpenRouter
+          ? "OPENROUTER_API_KEY is not set"
+          : "OPENAI_API_KEY is not set",
       });
     }
 
@@ -84,21 +73,12 @@ app.post("/generate", async (req, res) => {
       return res.status(400).json({ ok: false, stage: "request", error: "prompt_required" });
     }
 
-    const response = await client.responses.create({
-      model: MODEL,
-      input: prompt,
-      text: {
-        format: { type: "json_object" },
-      },
-    });
-
-    const text = extractResponseText(response);
+    const text = await llmJsonObject(llm, prompt);
     if (!text) {
       return res.json({
         ok: false,
         stage: "model",
         error: "empty_model_output",
-        raw: response,
       });
     }
 
@@ -159,11 +139,13 @@ app.post("/agent/run", async (req, res) => {
   const trace = [];
 
   try {
-    if (!process.env.OPENAI_API_KEY) {
+    if (!hasLlmCredentials(llm)) {
       return res.status(500).json({
         ok: false,
         stage: "config",
-        error: "OPENAI_API_KEY is not set",
+        error: llm.useOpenRouter
+          ? "OPENROUTER_API_KEY is not set"
+          : "OPENAI_API_KEY is not set",
         trace,
       });
     }
@@ -174,14 +156,13 @@ app.post("/agent/run", async (req, res) => {
     }
 
     const decisionInput = `${AGENT_DECISION_INSTRUCTIONS}\n\nUser request:\n${prompt.trim()}`;
-    const decisionRes = await client.responses.create({
-      model: MODEL,
-      input: decisionInput,
-      text: { format: { type: "json_object" } },
+    const decisionText = await llmJsonObject(llm, decisionInput);
+    trace.push({
+      step: "decision_raw",
+      ok: Boolean(decisionText),
+      model: llm.model,
+      provider: llm.useOpenRouter ? "openrouter" : "openai",
     });
-
-    const decisionText = extractResponseText(decisionRes);
-    trace.push({ step: "decision_raw", ok: Boolean(decisionText), model: MODEL });
 
     if (!decisionText) {
       return res.json({
@@ -238,11 +219,8 @@ app.post("/agent/run", async (req, res) => {
     const finalizeInput = `The user asked:\n${prompt.trim()}\n\nThe echo tool was invoked and returned this JSON:\n${JSON.stringify(
       toolResult.output
     )}\n\nWrite a single short plain-text reply to the user that incorporates this result. No JSON, no bullet meta-commentary.`;
-    const finalRes = await client.responses.create({
-      model: MODEL,
-      input: finalizeInput,
-    });
-    const finalText = extractResponseText(finalRes)?.trim() ?? "";
+    const finalRaw = await llmText(llm, finalizeInput);
+    const finalText = finalRaw?.trim() ?? "";
     trace.push({ step: "finalize_model", ok: finalText.length > 0 });
 
     if (!finalText) {
@@ -288,5 +266,10 @@ app.post("/admit", (req, res) => {
 const PORT = Number(process.env.PORT) || 3000;
 app.listen(PORT, () => {
   console.log(`Draft test harness: http://localhost:${PORT}`);
-  console.log("OPENAI_MODEL=%s ZAK_CONSTITUTION_ID=%s", MODEL, CONSTITUTION_ID);
+  console.log(
+    "LLM provider=%s model=%s ZAK_CONSTITUTION_ID=%s",
+    llm.useOpenRouter ? "openrouter" : "openai",
+    llm.model,
+    CONSTITUTION_ID
+  );
 });
