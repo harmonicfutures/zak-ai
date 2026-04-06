@@ -42,3 +42,15 @@ export OPENAI_API_KEY="…"
 # optional: export OPENAI_MODEL=gpt-4o
 cd capability-registry && npm run build && cd examples/openai-draft-pipeline && npm install && npm start
 ```
+
+### Browser test harness (`draft-test-harness/`)
+
+Same pipeline with a **dumb** HTML UI: `POST /generate` runs the model, then **`prepareExecutionRequest`**. Open **`http://localhost:3000`** after starting the server (served from `public/` — no `file://` CORS issues).
+
+```bash
+export OPENAI_API_KEY="…"
+cd capability-registry && npm run build
+cd ../draft-test-harness && npm install && npm start
+```
+
+`POST /admit` is a **501 stub** until a real membrane client is wired.
