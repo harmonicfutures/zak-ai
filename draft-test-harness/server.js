@@ -5,7 +5,7 @@
  * LLM:
  *   - Set OPENROUTER_API_KEY + optional OPENROUTER_MODEL (default openrouter/free) for testing.
  *   - Or OPENAI_API_KEY + OPENAI_MODEL when OPENROUTER_API_KEY is unset.
- *   - Optional .env in this directory (loaded via dotenv); see sample.env.
+ *   - Optional .env: repo root (ZAKAI/.env) or draft-test-harness/.env (harness wins on duplicate keys).
  *
  *   cd ../capability-registry && npm run build
  *   cd ../draft-test-harness && npm install && npm start
@@ -13,7 +13,7 @@
  * Open http://localhost:3000/
  */
 
-import "dotenv/config";
+import dotenv from "dotenv";
 import express from "express";
 import path from "path";
 import { fileURLToPath } from "url";
@@ -30,6 +30,8 @@ import {
 import { createHarnessLlm, hasLlmCredentials, llmJsonObject, llmText } from "./lib/llm.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
+dotenv.config({ path: path.join(__dirname, "..", ".env") });
+dotenv.config({ path: path.join(__dirname, ".env"), override: true });
 
 const app = express();
 app.use(express.json({ limit: "512kb" }));

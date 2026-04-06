@@ -13,7 +13,7 @@ Open http://localhost:3000/
 
 ## LLM: OpenAI vs OpenRouter
 
-- **OpenRouter (good for free/test):** set `OPENROUTER_API_KEY` in the environment or copy `sample.env` → `.env` in this folder. Default model: `openrouter/free`. Uses chat completions against `https://openrouter.ai/api/v1`.
+- **OpenRouter (good for free/test):** set `OPENROUTER_API_KEY` in `ZAKAI/.env` **or** `draft-test-harness/.env` (harness file overrides the root on duplicate keys). Or copy `sample.env` → `.env`. Default model: `openrouter/free`.
 - **OpenAI:** leave `OPENROUTER_API_KEY` unset and set `OPENAI_API_KEY` (Responses API for JSON where supported).
 
 `dotenv` loads `.env` automatically when you `npm start` / `node server.js`.

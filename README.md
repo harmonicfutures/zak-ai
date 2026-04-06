@@ -45,7 +45,7 @@ export OPENAI_API_KEY="…"
 cd capability-registry && npm run build && cd examples/openai-draft-pipeline && npm install && npm start
 ```
 
-For the **browser harness**, you can use **OpenRouter** instead: copy `draft-test-harness/sample.env` to `draft-test-harness/.env`, set `OPENROUTER_API_KEY`, or export it; default model is `openrouter/free`.
+For the **browser harness**, you can use **OpenRouter**: set `OPENROUTER_API_KEY` in **`ZAKAI/.env`** or **`draft-test-harness/.env`** (the harness file overrides on conflicts). See `draft-test-harness/sample.env`.
 
 ### Browser test harness (`draft-test-harness/`)
 
