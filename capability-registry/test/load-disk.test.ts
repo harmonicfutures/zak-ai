@@ -23,12 +23,17 @@ describe("loadDefinitionsFromCapabilitiesDirectory", () => {
     const defs = loadDefinitionsFromCapabilitiesDirectory(REPO_CAPABILITIES_ROOT, {
       logger: silentLoadLogger,
     });
-    expect(defs.length).toBe(4);
+    expect(defs.length).toBe(9);
     const ids = new Set(defs.map((d) => `${d.capability}@${d.version}`));
     expect(ids.has("hai.time.get@1.0.0")).toBe(true);
     expect(ids.has("hai.context.snapshot@1.0.0")).toBe(true);
     expect(ids.has("hai.particle.update@1.0.0")).toBe(true);
     expect(ids.has("hai.particle.update@2.0.0")).toBe(true);
+    expect(ids.has("hai.state.slice.build@1.0.0")).toBe(true);
+    expect(ids.has("zak.plan.trace.read@1.0.0")).toBe(true);
+    expect(ids.has("zak.plan.artifact.validate@1.0.0")).toBe(true);
+    expect(ids.has("zak.dev.filesystem.tree@1.0.0")).toBe(true);
+    expect(ids.has("zak.dev.filesystem.read@1.0.0")).toBe(true);
   });
 
   it("compiled particle v1 matches disk JSON", () => {

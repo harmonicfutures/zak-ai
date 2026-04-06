@@ -1,0 +1,31 @@
+{
+  "adapter": {
+    "key": "ide-phase1",
+    "route": "dev.filesystem.read"
+  },
+  "capability": "zak.dev.filesystem.read",
+  "description": "Read-only single file contents (UTF-8) for agent-visible workspace paths",
+  "input_schema": {
+    "additionalProperties": false,
+    "properties": {
+      "runtimeServerUrl": {
+        "minLength": 1,
+        "type": "string"
+      },
+      "filePath": {
+        "minLength": 1,
+        "type": "string"
+      }
+    },
+    "required": [
+      "runtimeServerUrl",
+      "filePath"
+    ],
+    "type": "object"
+  },
+  "tags": [
+    "dev",
+    "zak"
+  ],
+  "version": "1.0.0"
+}

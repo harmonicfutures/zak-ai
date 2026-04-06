@@ -27,13 +27,18 @@ function makeRuntime() {
 describe("runtime with compiled capabilities only", () => {
   it("suggestedMembraneSnapshotPairs lists all compiled pairs", () => {
     const pairs = suggestedMembraneSnapshotPairs(REPO_CAPABILITIES_ROOT);
-    expect(pairs.length).toBe(4);
+    expect(pairs.length).toBe(9);
     expect(pairs).toEqual(
       expect.arrayContaining([
         { capability: "hai.time.get", version: "1.0.0" },
         { capability: "hai.context.snapshot", version: "1.0.0" },
         { capability: "hai.particle.update", version: "1.0.0" },
         { capability: "hai.particle.update", version: "2.0.0" },
+        { capability: "hai.state.slice.build", version: "1.0.0" },
+        { capability: "zak.plan.trace.read", version: "1.0.0" },
+        { capability: "zak.plan.artifact.validate", version: "1.0.0" },
+        { capability: "zak.dev.filesystem.tree", version: "1.0.0" },
+        { capability: "zak.dev.filesystem.read", version: "1.0.0" },
       ])
     );
   });

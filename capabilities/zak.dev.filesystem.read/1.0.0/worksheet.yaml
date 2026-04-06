@@ -1,0 +1,40 @@
+capability: zak.dev.filesystem.read
+version: 1.0.0
+adapter:
+  key: ide-phase1
+  route: dev.filesystem.read
+execution_class: A
+authority_requirements: none
+description: Read-only single file contents (UTF-8) for agent-visible workspace paths
+tags:
+  - zak
+  - dev
+input_schema:
+  type: object
+  required:
+    - runtimeServerUrl
+    - filePath
+  properties:
+    runtimeServerUrl:
+      type: string
+      minLength: 1
+    filePath:
+      type: string
+      minLength: 1
+  additionalProperties: false
+output_schema:
+  type: object
+  required:
+    - ok
+  properties:
+    ok:
+      type: boolean
+    content:
+      type: string
+    error:
+      type: string
+  additionalProperties: true
+golden:
+  input:
+    runtimeServerUrl: http://localhost:3001
+    filePath: /tmp/example.txt
