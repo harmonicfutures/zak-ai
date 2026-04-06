@@ -1,0 +1,15 @@
+{
+  "name": "@zak/example-openai-draft-pipeline",
+  "private": true,
+  "type": "module",
+  "description": "Model-generated drafts → JSON.parse → prepareExecutionRequest (host gate).",
+  "scripts": {
+    "start": "node run.mjs"
+  },
+  "dependencies": {
+    "openai": "^4.77.0"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

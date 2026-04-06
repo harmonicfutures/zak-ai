@@ -29,3 +29,16 @@ Separation of:
 - admissibility (snapshot)
 - execution (ZAKAI)
 - enforcement (proxy)
+
+## Model-generated drafts (host only)
+
+The LLM is an untrusted input source. A minimal pipeline lives at
+`capability-registry/examples/openai-draft-pipeline/`: it calls the OpenAI **Responses** API with
+`text.format: json_object`, parses output as hostile, then runs **`prepareExecutionRequest`** so only
+registry validation + semantics decide accept/reject.
+
+```bash
+export OPENAI_API_KEY="…"
+# optional: export OPENAI_MODEL=gpt-4o
+cd capability-registry && npm run build && cd examples/openai-draft-pipeline && npm install && npm start
+```
