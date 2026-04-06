@@ -1,0 +1,9 @@
+{
+  "version": 1,
+  "comment": "Gold-constitutional mirror: policy_hash values are content-addressed; overlays are read-only composition metadata only.",
+  "constitutions": {
+    "zak-default": {
+      "overlays": []
+    }
+  }
+}

@@ -1,0 +1,103 @@
+{
+  "version": 1,
+  "meta": {
+    "gold_role": "Immutable execution environment (validator → compiler → runner; LLM adapters are engine bridges only).",
+    "adapters_role": "I/O modules (HTTP ingress, sentry/XDP hook) that depend on the KernelRuntime contract, not on implementation imports."
+  },
+  "path_resolution": {
+    "gold_dir_env": "ZAKAI_GOLD",
+    "adapters_dir_env": "ZAKAI_ADAPTERS",
+    "gold_candidates": ["ZAK-Gold", "zak-core"],
+    "adapters_candidates": ["ZAK-Adapters", "zak-adapters"]
+  },
+  "gold_internal": {
+    "package": "zak-core",
+    "root_module": "src/kernel/validator.ts",
+    "nodes": [
+      {"id": "kernel/validator", "path": "zak-core/src/kernel/validator.ts", "kind": "core"},
+      {"id": "kernel/compiler", "path": "zak-core/src/kernel/compiler.ts", "kind": "core"},
+      {"id": "kernel/runner", "path": "zak-core/src/kernel/runner.ts", "kind": "core"},
+      {"id": "kernel/tuner", "path": "zak-core/src/kernel/tuner.ts", "kind": "core"},
+      {"id": "adapters/llama_cpp", "path": "zak-core/src/adapters/llama_cpp.ts", "kind": "engine_bridge"},
+      {"id": "adapters/vllm", "path": "zak-core/src/adapters/vllm.ts", "kind": "engine_bridge"},
+      {"id": "ui/server", "path": "zak-core/src/ui/server.ts", "kind": "pilot_ui"}
+    ],
+    "edges": [
+      ["kernel/compiler", "kernel/validator"],
+      ["kernel/runner", "kernel/compiler"],
+      ["kernel/tuner", "kernel/validator"],
+      ["adapters/llama_cpp", "kernel/runner"],
+      ["adapters/vllm", "kernel/runner"],
+      ["ui/server", "kernel/runner"],
+      ["ui/server", "kernel/compiler"],
+      ["ui/server", "kernel/validator"]
+    ]
+  },
+  "adapters_internal": {
+    "package": "zak-adapters",
+    "entry": "zak-adapters/src/index.ts",
+    "nodes": [
+      {"id": "contracts/kernel", "path": "zak-adapters/src/contracts/kernel.ts", "kind": "contract"},
+      {"id": "contracts/audit", "path": "zak-adapters/src/contracts/audit.ts", "kind": "contract"},
+      {"id": "utils/money", "path": "zak-adapters/src/utils/money.ts", "kind": "util"},
+      {"id": "adapters/http/adapter", "path": "zak-adapters/src/adapters/http/adapter.ts", "kind": "io"},
+      {"id": "adapters/http/server", "path": "zak-adapters/src/adapters/http/server.ts", "kind": "io"},
+      {"id": "adapters/sentry/adapter", "path": "zak-adapters/src/adapters/sentry/adapter.ts", "kind": "io"},
+      {"id": "app/index", "path": "zak-adapters/src/index.ts", "kind": "bootstrap"}
+    ],
+    "edges": [
+      ["utils/money", "contracts/kernel"],
+      ["adapters/http/adapter", "contracts/kernel"],
+      ["adapters/http/adapter", "contracts/audit"],
+      ["adapters/http/adapter", "utils/money"],
+      ["adapters/http/server", "adapters/http/adapter"],
+      ["adapters/sentry/adapter", "contracts/kernel"],
+      ["adapters/sentry/adapter", "contracts/audit"],
+      ["app/index", "adapters/http/server"],
+      ["app/index", "adapters/http/adapter"],
+      ["app/index", "adapters/sentry/adapter"],
+      ["app/index", "contracts/kernel"]
+    ]
+  },
+  "cross_cut": {
+    "contract": "KernelRuntime.execute(ExecutionEnvelope) -> Promise<KernelResult>",
+    "edges": [
+      {
+        "from": "adapters:KernelRuntime consumer (HTTP/Sentry)",
+        "to": "gold:sovereign runtime (today: mock in zak-adapters; target: injected Node binding)",
+        "note": "Repositories stay decoupled; orchestrator wires process boundaries and env."
+      }
+    ]
+  },
+  "proxy": {
+    "description": "Constitutional membrane: admission + edge allowlist + capability scope. Engine supplies bundle measurements; proxy enforces.",
+    "untrusted_plugin_names": ["http", "sentry"],
+    "allowed_cross_edges": [
+      ["adapters/http/adapter", "kernel/runner"],
+      ["adapters/sentry/adapter", "kernel/runner"]
+    ],
+    "capability_scope": {
+      "http": [
+        "execute.kernel_bridge",
+        "memory.read",
+        "memory.write",
+        "hai.particle.update",
+        "hai.context.snapshot"
+      ],
+      "sentry": [
+        "execute.kernel_bridge",
+        "memory.read",
+        "memory.write",
+        "hai.particle.update",
+        "hai.context.snapshot"
+      ]
+    }
+  },
+  "auxiliary_trees": [
+    {
+      "id": "zak-ingress-sentry",
+      "path": "zak-adapters/zak-ingress-sentry",
+      "relation_to_adapters": "Sibling Rust/eBPF workspace; not imported by TypeScript adapters entry."
+    }
+  ]
+}

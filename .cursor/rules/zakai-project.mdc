@@ -1,0 +1,11 @@
+---
+description: ZAKAI kernel integrity, adapters, zero-asset engine, and naming conventions
+alwaysApply: true
+---
+
+# ZAKAI Project Rules
+
+- **Kernel Integrity:** Never modify files inside `ZAK-Gold/`. It is the Gold Master. If a change is needed, suggest an override in the `/engine` layer.
+- **Adapter Pattern:** All new AI capabilities must be built as Adapters following the pattern in `ZAK-Adapters/`.
+- **Zero Asset Principle:** Ensure no state is stored locally within the Engine; use the ZAK resonance anchors for persistence.
+- **Naming Convention:** Use `Resonance` for memory-related functions and `Shift` for state transitions.

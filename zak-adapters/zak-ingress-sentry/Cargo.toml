@@ -1,0 +1,8 @@
+[workspace]
+members = [
+    "zak-sentry-ebpf",
+    "zak-sentry-user",
+    "zak-core-logic",
+]
+resolver = "2"
+

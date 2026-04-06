@@ -1,0 +1,39 @@
+{
+  "meta": {
+    "id": "corp.root.v1",
+    "version": 1,
+    "author_signature": "SIG_0x123",
+    "content_hash": "5f5504e3e2dbc2df3886f31dcd7d6b37759acc335e6f901d1e3469dd7da38f69",
+    "created_at": 1766831811744
+  },
+  "body": {
+    "geometry": {
+      "topology": "closed",
+      "complexity_weight": 1,
+      "vectors": [
+        [
+          0,
+          0,
+          0
+        ]
+      ]
+    },
+    "material": {
+      "roughness": 1,
+      "luminosity": 0.5
+    },
+    "resonance": {
+      "base_frequency": 100,
+      "amplitude": 0.1,
+      "dissonance_frequencies": []
+    },
+    "field_effect": {
+      "scope": "global",
+      "invariants": [
+        "REFUSE_PERSONAL_OPINION",
+        "OUTPUT_LIMIT_WORDS:500"
+      ],
+      "directives": []
+    }
+  }
+}

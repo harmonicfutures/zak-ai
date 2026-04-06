@@ -1,0 +1,20 @@
+[package]
+name = "zak-sentry-user"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+# Dependencies for the Loader
+aya = { git = "https://github.com/aya-rs/aya", branch = "main" }
+aya-log = { git = "https://github.com/aya-rs/aya", branch = "main" }
+tokio = { version = "1.25", features = ["macros", "rt", "rt-multi-thread", "net", "signal"] }
+clap = { version = "4.1", features = ["derive"] }
+anyhow = "1.0"
+env_logger = "0.10"
+log = "0.4"
+rlimit = "0.10"
+zak-core-logic = { path = "../zak-core-logic" }
+
+[[bin]]
+name = "zak-sentry-user"
+path = "src/main.rs"

@@ -1,0 +1,14 @@
+{
+  "version": 1,
+  "comment": "ADMISSION WHITELIST ONLY — not a second registry. Rollout: observability = hash optional, recorded on receipts; enforcement = use host to always send hash + fill definition_hash_pins for fail-closed compare; mixed = pins only for some pairs. Hash algorithm version is inside the host payload (v=1): never change canonical JSON rules under the same v. Membrane MUST NOT recompute definition hashes.",
+  "definition_hash_pins": [],
+  "entries": [
+    { "capability": "execute.evil_not_allowed", "version": "1.0.0" },
+    { "capability": "execute.kernel_bridge", "version": "1.0.0" },
+    { "capability": "memory.read", "version": "1.0.0" },
+    { "capability": "memory.write", "version": "1.0.0" },
+    { "capability": "hai.particle.update", "version": "1.0.0" },
+    { "capability": "hai.particle.update", "version": "2.0.0" },
+    { "capability": "hai.context.snapshot", "version": "1.0.0" }
+  ]
+}

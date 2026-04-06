@@ -1,0 +1,16 @@
+[package]
+name = "zak-sentry-ebpf"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+# We use the git repo to match your Nightly compiler
+aya-bpf = { git = "https://github.com/aya-rs/aya", branch = "main", package = "aya-ebpf" }
+aya-log-ebpf = { git = "https://github.com/aya-rs/aya", branch = "main", package = "aya-log-ebpf" }
+zak-core-logic = { path = "../zak-core-logic" }
+
+[[bin]]
+name = "zak-sentry"
+path = "src/main.rs"
+
+

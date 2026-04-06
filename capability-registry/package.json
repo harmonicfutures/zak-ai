@@ -1,0 +1,29 @@
+{
+  "name": "@zak/capability-registry",
+  "version": "0.1.0",
+  "description": "External capability schemas and host-side validation (optional; ZAKAI remains schema-agnostic)",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "type": "commonjs",
+  "scripts": {
+    "build": "tsup src/index.ts --format cjs,esm --dts --clean",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "dependencies": {
+    "ajv": "^8.17.1",
+    "ajv-formats": "^3.0.1",
+    "semver": "^7.6.3"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.2",
+    "@types/semver": "^7.5.8",
+    "tsup": "^8.3.5",
+    "typescript": "^5.7.2",
+    "vitest": "^2.1.8"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "license": "ISC"
+}

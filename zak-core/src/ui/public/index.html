@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ZAK | Pilot Terminal</title>
+    <style>
+        :root {
+            --bg: #0f172a;
+            --panel: #1e293b;
+            --text: #f1f5f9;
+            --accent: #38bdf8;
+            --error: #ef4444;
+            --success: #10b981;
+        }
+        body {
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        .container {
+            width: 800px;
+            max-width: 90%;
+            background: var(--panel);
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+        h1 { margin: 0; font-size: 1.25rem; color: var(--accent); border-bottom: 1px solid #334155; padding-bottom: 0.5rem; }
+        .input-group { display: flex; flex-direction: column; gap: 0.5rem; }
+        textarea {
+            background: #000;
+            color: #fff;
+            border: 1px solid #475569;
+            padding: 1rem;
+            border-radius: 4px;
+            resize: none;
+            height: 150px;
+            font-size: 1rem;
+        }
+        button {
+            background-color: var(--accent);
+            color: var(--bg);
+            border: none;
+            padding: 0.75rem;
+            border-radius: 4px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+        button:hover { opacity: 0.9; }
+        button:disabled { opacity: 0.5; cursor: not-allowed; }
+        .output-box {
+            background: #000;
+            border: 1px solid #334155;
+            padding: 1rem;
+            border-radius: 4px;
+            min-height: 100px;
+            white-space: pre-wrap;
+            overflow-y: auto;
+            max-height: 300px;
+        }
+        .error { color: var(--error); border-color: var(--error); }
+        .success { color: var(--success); }
+        .status { font-size: 0.8rem; color: #94a3b8; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>ZAK KERNEL // PILOT INTERFACE</h1>
+        
+        <div class="input-group">
+            <textarea id="prompt" placeholder="Enter query for ZAK Kernel..."></textarea>
+            <button id="runBtn" onclick="execute()">RUN EXECUTION</button>
+        </div>
+
+        <div class="input-group">
+            <div class="status" id="statusLine">STATUS: IDLE</div>
+            <div id="output" class="output-box">Waiting for execution...</div>
+        </div>
+    </div>
+
+    <script>
+        async function execute() {
+            const promptEl = document.getElementById('prompt');
+            const runBtn = document.getElementById('runBtn');
+            const outputEl = document.getElementById('output');
+            const statusLine = document.getElementById('statusLine');
+
+            const prompt = promptEl.value.trim();
+            if (!prompt) return;
+
+            // Clear state
+            outputEl.textContent = "Processing...";
+            outputEl.classList.remove('error', 'success');
+            statusLine.textContent = "STATUS: EXECUTING...";
+            runBtn.disabled = true;
+
+            try {
+                const response = await fetch('/execute', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ prompt })
+                });
+
+                const data = await response.json();
+
+                if (data.ok) {
+                    outputEl.textContent = data.result;
+                    outputEl.classList.add('success');
+                    statusLine.textContent = "STATUS: SUCCESS";
+                } else {
+                    outputEl.textContent = `REFUSAL: ${data.refusal}`;
+                    outputEl.classList.add('error');
+                    statusLine.textContent = "STATUS: REFUSED";
+                }
+            } catch (err) {
+                outputEl.textContent = "SYSTEM ERROR: Connection to kernel lost.";
+                outputEl.classList.add('error');
+                statusLine.textContent = "STATUS: CRITICAL ERROR";
+            } finally {
+                runBtn.disabled = false;
+            }
+        }
+    </script>
+</body>
+</html>
+

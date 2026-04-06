@@ -1,0 +1,24 @@
+# HARD SAFETY — never traverse upward
+../*
+
+# OS / editor junk
+.vscode/
+.cursor/
+.DS_Store
+Thumbs.db
+
+# Node
+node_modules/
+dist/
+coverage/
+
+# Env
+.env
+.env.*
+
+# Python
+__pycache__/
+venv/
+
+# Logs
+*.log

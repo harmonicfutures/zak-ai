@@ -1,0 +1,26 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.Python
+.venv/
+venv/
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+
+# OS / editor
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+
+# Env / secrets
+.env
+.env.*
+
+# Logs
+*.log
+
+# Local backup of former nested repos (not for publish)
+_nested_git_backup/
