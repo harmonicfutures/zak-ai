@@ -1,0 +1,7 @@
+{
+  "input": {
+    "apiKey": "test-key",
+    "apiUrl": "https://edge.example",
+    "sessionId": "sess-1"
+  }
+}

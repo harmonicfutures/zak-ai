@@ -1,0 +1,66 @@
+adapter:
+  key: ide-phase1
+  route: state.slice.build
+authority_requirements: none
+capability: hai.state.slice.build
+description: Build relevant or adaptive runtime state slice from structured context
+execution_class: A
+golden:
+  input:
+    context:
+      currentSnapshot:
+        authorityHash: null
+        lastToolCallId: null
+        lastToolResultPreview: null
+        lifecycle: idle
+        pendingApprovalId: null
+        pendingApprovalTool: null
+      currentStatus:
+        lifecycle: idle
+      currentWorkflow:
+        pendingApproval: null
+      detail: auto
+      fieldState:
+        conflict: false
+        lastFailureReason: null
+        recentActions: null
+        recentFailure: false
+        resonance: 0
+        torsion: 0
+      flowMode: supervised
+      genesisContext:
+        constraints: null
+        intent: null
+        summary: null
+      keys: []
+      lastToolResult: null
+      projectArcId: null
+      retrievalIntent: null
+      scope: task
+      targetPath: null
+      workspaceRoot: /tmp
+      zakContext:
+        active_focus: null
+    mode: relevant
+input_schema:
+  additionalProperties: false
+  properties:
+    context:
+      additionalProperties: true
+      type: object
+    mode:
+      enum:
+        - relevant
+        - adaptive
+      type: string
+  required:
+    - mode
+    - context
+  type: object
+output_schema:
+  additionalProperties: true
+  type: object
+tags:
+  - hai
+  - state
+version: 1.0.0

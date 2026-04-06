@@ -1,0 +1,23 @@
+{
+  "adapter": {
+    "key": "ide-phase1",
+    "route": "plan.artifact.validate"
+  },
+  "capability": "zak.plan.artifact.validate",
+  "description": "Validate unknown JSON as PlanArtifact contract",
+  "input_schema": {
+    "additionalProperties": false,
+    "properties": {
+      "value": true
+    },
+    "required": [
+      "value"
+    ],
+    "type": "object"
+  },
+  "tags": [
+    "plan",
+    "zak"
+  ],
+  "version": "1.0.0"
+}

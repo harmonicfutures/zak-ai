@@ -1,0 +1,76 @@
+capability: zak.plan.artifact.validate
+version: 1.0.0
+adapter:
+  key: ide-phase1
+  route: plan.artifact.validate
+execution_class: A
+authority_requirements: none
+description: Validate unknown JSON as PlanArtifact contract
+tags:
+  - zak
+  - plan
+input_schema:
+  type: object
+  required:
+    - value
+  properties:
+    value: true
+  additionalProperties: false
+output_schema:
+  type: object
+  required:
+    - ok
+  properties:
+    ok:
+      type: boolean
+    artifact:
+      type: object
+      additionalProperties: true
+    missing:
+      type: array
+      items:
+        type: string
+    errors:
+      type: array
+      items:
+        type: string
+  additionalProperties: true
+golden:
+  input:
+    value:
+      objective: o
+      scope:
+        inScope:
+          - a
+        outOfScope:
+          - b
+      assumptions:
+        - x
+      unknowns:
+        - y
+      architecture:
+        - component: c
+          responsibility: r
+      executionPlan:
+        phases:
+          - id: p1
+            name: n
+            summary: s
+        dependencies: []
+        criticalPath:
+          - p1
+      risks:
+        - risk: r1
+          impact: i
+          mitigation: m
+      decisions:
+        - decision: d
+          rationale: ra
+          alternativesConsidered:
+            - a
+      successCriteria:
+        - sc
+      nextActions:
+        - action: act
+          owner: o
+          requiresApproval: false

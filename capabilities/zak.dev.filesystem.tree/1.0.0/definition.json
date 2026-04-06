@@ -1,0 +1,40 @@
+{
+  "adapter": {
+    "key": "ide-phase1",
+    "route": "dev.filesystem.tree"
+  },
+  "capability": "zak.dev.filesystem.tree",
+  "description": "Read-only workspace file tree for a reality or explicit workspace root (runtime-server contract)",
+  "input_schema": {
+    "additionalProperties": false,
+    "properties": {
+      "depth": {
+        "minimum": 0,
+        "type": "integer"
+      },
+      "maxNodes": {
+        "minimum": 1,
+        "type": "integer"
+      },
+      "realityId": {
+        "type": "string"
+      },
+      "runtimeServerUrl": {
+        "minLength": 1,
+        "type": "string"
+      },
+      "workspaceRoot": {
+        "type": "string"
+      }
+    },
+    "required": [
+      "runtimeServerUrl"
+    ],
+    "type": "object"
+  },
+  "tags": [
+    "dev",
+    "zak"
+  ],
+  "version": "1.0.0"
+}

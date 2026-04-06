@@ -1,0 +1,34 @@
+{
+  "adapter": {
+    "key": "ide-phase1",
+    "route": "state.slice.build"
+  },
+  "capability": "hai.state.slice.build",
+  "description": "Build relevant or adaptive runtime state slice from structured context",
+  "input_schema": {
+    "additionalProperties": false,
+    "properties": {
+      "context": {
+        "additionalProperties": true,
+        "type": "object"
+      },
+      "mode": {
+        "enum": [
+          "relevant",
+          "adaptive"
+        ],
+        "type": "string"
+      }
+    },
+    "required": [
+      "mode",
+      "context"
+    ],
+    "type": "object"
+  },
+  "tags": [
+    "hai",
+    "state"
+  ],
+  "version": "1.0.0"
+}

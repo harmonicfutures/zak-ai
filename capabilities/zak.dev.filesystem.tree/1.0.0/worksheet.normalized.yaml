@@ -1,0 +1,49 @@
+adapter:
+  key: ide-phase1
+  route: dev.filesystem.tree
+authority_requirements: none
+capability: zak.dev.filesystem.tree
+description: Read-only workspace file tree for a reality or explicit workspace
+  root (runtime-server contract)
+execution_class: A
+golden:
+  input:
+    runtimeServerUrl: http://localhost:3001
+    workspaceRoot: /tmp
+input_schema:
+  additionalProperties: false
+  properties:
+    depth:
+      minimum: 0
+      type: integer
+    maxNodes:
+      minimum: 1
+      type: integer
+    realityId:
+      type: string
+    runtimeServerUrl:
+      minLength: 1
+      type: string
+    workspaceRoot:
+      type: string
+  required:
+    - runtimeServerUrl
+  type: object
+output_schema:
+  additionalProperties: true
+  properties:
+    error:
+      type: string
+    ok:
+      type: boolean
+    tree:
+      type: array
+    workspaceRoot:
+      type: string
+  required:
+    - ok
+  type: object
+tags:
+  - zak
+  - dev
+version: 1.0.0

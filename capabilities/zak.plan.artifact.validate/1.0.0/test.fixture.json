@@ -1,0 +1,66 @@
+{
+  "input": {
+    "value": {
+      "architecture": [
+        {
+          "component": "c",
+          "responsibility": "r"
+        }
+      ],
+      "assumptions": [
+        "x"
+      ],
+      "decisions": [
+        {
+          "alternativesConsidered": [
+            "a"
+          ],
+          "decision": "d",
+          "rationale": "ra"
+        }
+      ],
+      "executionPlan": {
+        "criticalPath": [
+          "p1"
+        ],
+        "dependencies": [],
+        "phases": [
+          {
+            "id": "p1",
+            "name": "n",
+            "summary": "s"
+          }
+        ]
+      },
+      "nextActions": [
+        {
+          "action": "act",
+          "owner": "o",
+          "requiresApproval": false
+        }
+      ],
+      "objective": "o",
+      "risks": [
+        {
+          "impact": "i",
+          "mitigation": "m",
+          "risk": "r1"
+        }
+      ],
+      "scope": {
+        "inScope": [
+          "a"
+        ],
+        "outOfScope": [
+          "b"
+        ]
+      },
+      "successCriteria": [
+        "sc"
+      ],
+      "unknowns": [
+        "y"
+      ]
+    }
+  }
+}

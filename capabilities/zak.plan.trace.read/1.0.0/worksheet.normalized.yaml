@@ -1,0 +1,49 @@
+adapter:
+  key: ide-phase1
+  route: plan.trace.read
+authority_requirements: none
+capability: zak.plan.trace.read
+description: Read plan intent trace nodes for a session (edge proxy contract)
+execution_class: A
+golden:
+  input:
+    apiKey: test-key
+    apiUrl: https://edge.example
+    sessionId: sess-1
+input_schema:
+  additionalProperties: false
+  properties:
+    apiKey:
+      type: string
+    apiUrl:
+      minLength: 1
+      type: string
+    limit:
+      maximum: 100
+      minimum: 1
+      type: integer
+    nodeTypes:
+      type: string
+    planId:
+      type:
+        - string
+        - "null"
+    sessionId:
+      minLength: 1
+      type: string
+  required:
+    - apiUrl
+    - sessionId
+  type: object
+output_schema:
+  additionalProperties: true
+  properties:
+    items:
+      type: array
+  required:
+    - items
+  type: object
+tags:
+  - zak
+  - plan
+version: 1.0.0

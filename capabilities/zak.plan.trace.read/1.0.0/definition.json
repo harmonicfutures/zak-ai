@@ -1,0 +1,48 @@
+{
+  "adapter": {
+    "key": "ide-phase1",
+    "route": "plan.trace.read"
+  },
+  "capability": "zak.plan.trace.read",
+  "description": "Read plan intent trace nodes for a session (edge proxy contract)",
+  "input_schema": {
+    "additionalProperties": false,
+    "properties": {
+      "apiKey": {
+        "type": "string"
+      },
+      "apiUrl": {
+        "minLength": 1,
+        "type": "string"
+      },
+      "limit": {
+        "maximum": 100,
+        "minimum": 1,
+        "type": "integer"
+      },
+      "nodeTypes": {
+        "type": "string"
+      },
+      "planId": {
+        "type": [
+          "string",
+          "null"
+        ]
+      },
+      "sessionId": {
+        "minLength": 1,
+        "type": "string"
+      }
+    },
+    "required": [
+      "apiUrl",
+      "sessionId"
+    ],
+    "type": "object"
+  },
+  "tags": [
+    "plan",
+    "zak"
+  ],
+  "version": "1.0.0"
+}

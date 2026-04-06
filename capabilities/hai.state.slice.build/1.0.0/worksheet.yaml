@@ -1,0 +1,67 @@
+# Phase 1 Class A — compiled into registry; host invokes with RuntimeStateSliceContext as input.context
+capability: hai.state.slice.build
+version: 1.0.0
+adapter:
+  key: ide-phase1
+  route: state.slice.build
+execution_class: A
+authority_requirements: none
+description: Build relevant or adaptive runtime state slice from structured context
+tags:
+  - hai
+  - state
+input_schema:
+  type: object
+  required:
+    - mode
+    - context
+  properties:
+    mode:
+      type: string
+      enum:
+        - relevant
+        - adaptive
+    context:
+      type: object
+      additionalProperties: true
+  additionalProperties: false
+output_schema:
+  type: object
+  additionalProperties: true
+golden:
+  input:
+    mode: relevant
+    context:
+      scope: task
+      flowMode: supervised
+      workspaceRoot: /tmp
+      projectArcId: null
+      currentStatus:
+        lifecycle: idle
+      currentWorkflow:
+        pendingApproval: null
+      currentSnapshot:
+        lifecycle: idle
+        pendingApprovalId: null
+        pendingApprovalTool: null
+        authorityHash: null
+        lastToolCallId: null
+        lastToolResultPreview: null
+      lastToolResult: null
+      zakContext:
+        active_focus: null
+      genesisContext:
+        intent: null
+        summary: null
+        constraints: null
+      fieldState:
+        torsion: 0
+        conflict: false
+        resonance: 0
+        recentFailure: false
+        lastFailureReason: null
+        recentActions: null
+      keys: []
+      targetPath: null
+      retrievalIntent: null
+      detail: auto

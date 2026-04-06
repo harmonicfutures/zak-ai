@@ -1,0 +1,19 @@
+{
+  "authority_requirements": "none",
+  "compiler_version": "0.1.0",
+  "execution_class": "A",
+  "generated_by": "@zak/capability-compiler",
+  "output_schema": {
+    "additionalProperties": true,
+    "properties": {
+      "items": {
+        "type": "array"
+      }
+    },
+    "required": [
+      "items"
+    ],
+    "type": "object"
+  },
+  "template_version": "1.2.1"
+}

@@ -1,0 +1,6 @@
+{
+  "input": {
+    "runtimeServerUrl": "http://localhost:3001",
+    "workspaceRoot": "/tmp"
+  }
+}
