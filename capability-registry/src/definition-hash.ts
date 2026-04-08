@@ -1,5 +1,5 @@
-import { createHash } from "crypto";
 import type { CapabilityDefinition } from "./types";
+import { sha256Hex } from "./sha256";
 
 /**
  * **Hash algorithm identity includes the numeric `v` inside the payload.**
@@ -52,6 +52,6 @@ export function computeCapabilityDefinitionHash(definition: CapabilityDefinition
     payload.tags = [...definition.tags].sort();
   }
   const canon = stableStringify(payload);
-  const h = createHash("sha256").update(canon, "utf8").digest("hex");
+  const h = sha256Hex(canon);
   return `sha256:${h}`;
 }
