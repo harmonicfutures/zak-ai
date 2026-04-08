@@ -1,0 +1,83 @@
+capability: zak.io.supabase_sync
+version: 1.0.0
+description: >-
+  Syncs ZAK memory records to Supabase to maintain persistent state across sessions. Supports receipt records,
+  capability state, and session context. Keyed idempotency on record_id prevents duplicate writes. Does not read from
+  Supabase — write-only sync surface.
+tags:
+  - io
+  - supabase
+  - memory
+  - sync
+  - persistence
+adapter:
+  key: ide-phase1
+  route: io.supabase_sync
+execution_class: B
+authority_requirements: standard
+side_effect_tier: medium
+idempotency: keyed
+replay_behavior: allowed_same_key
+input_schema:
+  type: object
+  properties:
+    record_type:
+      type: string
+      description: The type of record being synced.
+      enum:
+        - receipt
+        - capability_state
+        - session_context
+        - memory_update
+    record_id:
+      type: string
+      description: >-
+        Unique identifier for this record. Used as the idempotency key. For receipts, use the receipt_id. For
+        capabilities, use capability_id + version.
+    table:
+      type: string
+      description: Target Supabase table name.
+      pattern: ^[a-z][a-z0-9_]*$
+    payload:
+      type: object
+      description: The record payload to upsert. Must be serialisable to JSON.
+      additionalProperties: true
+    execution_receipt_hash:
+      type: string
+      description: Optional. Links this sync operation to a ZAKAI execution receipt for audit trail continuity.
+  required:
+    - record_type
+    - record_id
+    - table
+    - payload
+  additionalProperties: false
+output_schema:
+  type: object
+  properties:
+    synced:
+      type: boolean
+    record_id:
+      type: string
+    table:
+      type: string
+    record_type:
+      type: string
+    upserted:
+      type: boolean
+    error:
+      type: string
+  required:
+    - synced
+    - record_id
+    - table
+    - record_type
+    - upserted
+  additionalProperties: false
+golden:
+  input:
+    record_type: memory_update
+    record_id: memory-golden-test-001
+    table: zak_memory
+    payload:
+      content: golden test memory record
+      source: test

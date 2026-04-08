@@ -1,0 +1,41 @@
+{
+  "authority_requirements": "standard",
+  "compiler_version": "0.1.0",
+  "execution_class": "B",
+  "generated_by": "@zak/capability-compiler",
+  "idempotency": "keyed",
+  "output_schema": {
+    "additionalProperties": false,
+    "properties": {
+      "error": {
+        "type": "string"
+      },
+      "record_id": {
+        "type": "string"
+      },
+      "record_type": {
+        "type": "string"
+      },
+      "synced": {
+        "type": "boolean"
+      },
+      "table": {
+        "type": "string"
+      },
+      "upserted": {
+        "type": "boolean"
+      }
+    },
+    "required": [
+      "synced",
+      "record_id",
+      "table",
+      "record_type",
+      "upserted"
+    ],
+    "type": "object"
+  },
+  "replay_behavior": "allowed_same_key",
+  "side_effect_tier": "medium",
+  "template_version": "1.2.1"
+}

@@ -1,0 +1,25 @@
+{
+  "authority_requirements": "standard",
+  "compiler_version": "0.1.0",
+  "execution_class": "A",
+  "generated_by": "@zak/capability-compiler",
+  "output_schema": {
+    "additionalProperties": false,
+    "properties": {
+      "content": {
+        "type": "string"
+      },
+      "lines": {
+        "type": "integer"
+      },
+      "path": {
+        "type": "string"
+      },
+      "truncated": {
+        "type": "boolean"
+      }
+    },
+    "type": "object"
+  },
+  "template_version": "1.2.1"
+}

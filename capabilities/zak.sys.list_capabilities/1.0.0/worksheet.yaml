@@ -1,0 +1,57 @@
+capability: zak.sys.list_capabilities
+version: 1.0.0
+description: >-
+  Scans the capabilities directory and returns all compiled capability identifiers and versions. Used to prevent
+  duplication before authoring new worksheets.
+tags:
+  - sys
+  - list
+  - capabilities
+  - introspection
+adapter:
+  key: ide-phase1
+  route: sys.list_capabilities
+execution_class: A
+authority_requirements: none
+input_schema:
+  type: object
+  properties:
+    prefix_filter:
+      type: string
+      description: Optional capability prefix to filter results. E.g. "zak.dev" returns only zak.dev.* capabilities.
+      pattern: ^(hai|zak)\.[a-z][a-z0-9_.]*$
+    include_versions:
+      type: boolean
+      description: Whether to include version information in results. Defaults to true.
+      default: true
+  required: []
+  additionalProperties: false
+output_schema:
+  type: object
+  properties:
+    capabilities:
+      type: array
+      items:
+        type: object
+        properties:
+          capability_id:
+            type: string
+          version:
+            type: string
+          execution_class:
+            type: string
+          compiled:
+            type: boolean
+        required:
+          - capability_id
+          - version
+          - compiled
+        additionalProperties: false
+    total:
+      type: integer
+  required:
+    - capabilities
+    - total
+  additionalProperties: false
+golden:
+  input: {}

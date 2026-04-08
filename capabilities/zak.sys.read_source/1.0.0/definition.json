@@ -1,0 +1,48 @@
+{
+  "adapter": {
+    "key": "ide-phase1",
+    "route": "sys.read_source"
+  },
+  "capability": "zak.sys.read_source",
+  "description": "Reads ZAK source files so the runtime can understand existing logic before authoring new schemas or capabilities. Constrained to the src directory. Cannot traverse outside the project root.",
+  "input_schema": {
+    "additionalProperties": false,
+    "properties": {
+      "include_extensions": {
+        "default": [
+          ".ts",
+          ".yaml",
+          ".json"
+        ],
+        "description": "File extensions to include. Defaults to [\".ts\", \".yaml\", \".json\"].",
+        "items": {
+          "type": "string"
+        },
+        "type": "array"
+      },
+      "max_depth": {
+        "default": 2,
+        "description": "Maximum directory traversal depth. Defaults to 2.",
+        "maximum": 5,
+        "minimum": 1,
+        "type": "integer"
+      },
+      "path": {
+        "description": "Relative path from project root. Must begin with src/ or capabilities/.",
+        "pattern": "^(src|capabilities)[\\/].+",
+        "type": "string"
+      }
+    },
+    "required": [
+      "path"
+    ],
+    "type": "object"
+  },
+  "tags": [
+    "introspection",
+    "read",
+    "source",
+    "sys"
+  ],
+  "version": "1.0.0"
+}

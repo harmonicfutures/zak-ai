@@ -1,0 +1,49 @@
+capability: zak.sys.read_source
+version: 1.0.0
+description: >-
+  Reads ZAK source files so the runtime can understand existing logic before authoring new schemas or capabilities.
+  Constrained to the src directory. Cannot traverse outside the project root.
+tags:
+  - sys
+  - read
+  - source
+  - introspection
+adapter:
+  key: ide-phase1
+  route: sys.read_source
+execution_class: A
+authority_requirements: standard
+input_schema:
+  type: object
+  properties:
+    path:
+      type: string
+      description: Relative path from project root. Must begin with src/ or capabilities/.
+      pattern: ^(src|capabilities)[\/].+
+    max_depth:
+      type: integer
+      description: Maximum directory traversal depth. Defaults to 2.
+      minimum: 1
+      maximum: 5
+      default: 2
+    include_extensions:
+      type: array
+      description: File extensions to include. Defaults to [".ts", ".yaml", ".json"].
+      items:
+        type: string
+      default:
+        - .ts
+        - .yaml
+        - .json
+  required:
+    - path
+  additionalProperties: false
+output_schema:
+  path: string
+  content: string
+  lines: integer
+  truncated: boolean
+golden:
+  input:
+    path: src/index.ts
+    max_depth: 1

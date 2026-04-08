@@ -1,0 +1,32 @@
+{
+  "adapter": {
+    "key": "ide-phase1",
+    "route": "sys.list_capabilities"
+  },
+  "capability": "zak.sys.list_capabilities",
+  "description": "Scans the capabilities directory and returns all compiled capability identifiers and versions. Used to prevent duplication before authoring new worksheets.",
+  "input_schema": {
+    "additionalProperties": false,
+    "properties": {
+      "include_versions": {
+        "default": true,
+        "description": "Whether to include version information in results. Defaults to true.",
+        "type": "boolean"
+      },
+      "prefix_filter": {
+        "description": "Optional capability prefix to filter results. E.g. \"zak.dev\" returns only zak.dev.* capabilities.",
+        "pattern": "^(hai|zak)\\.[a-z][a-z0-9_.]*$",
+        "type": "string"
+      }
+    },
+    "required": [],
+    "type": "object"
+  },
+  "tags": [
+    "capabilities",
+    "introspection",
+    "list",
+    "sys"
+  ],
+  "version": "1.0.0"
+}

@@ -1,0 +1,45 @@
+{
+  "adapter": {
+    "key": "ide-phase1",
+    "route": "dev.compile"
+  },
+  "capability": "zak.dev.compile",
+  "description": "Executes the capability compiler (node dist/cli.js compile) against a worksheet.yaml. Emits definition.json, definition.hash, meta.json, test.fixture.json, and test.spec.ts. Does not modify capability_snapshot.json. Does not whitelist in the membrane. Compilation is the transition from YAML worksheet to registry artifact.",
+  "input_schema": {
+    "additionalProperties": false,
+    "properties": {
+      "capability_id": {
+        "description": "The capability identifier to compile.",
+        "pattern": "^(hai|zak)\\.[a-z][a-z0-9_.]*$",
+        "type": "string"
+      },
+      "nested_version": {
+        "default": false,
+        "description": "Whether to emit under capabilities/<cap>/<version>/ layout. Defaults to false.",
+        "type": "boolean"
+      },
+      "out_dir": {
+        "default": "../capabilities",
+        "description": "Output directory for compiled artifacts. Defaults to ../capabilities.",
+        "type": "string"
+      },
+      "version": {
+        "description": "SemVer version string.",
+        "pattern": "^\\d+\\.\\d+\\.\\d+$",
+        "type": "string"
+      }
+    },
+    "required": [
+      "capability_id",
+      "version"
+    ],
+    "type": "object"
+  },
+  "tags": [
+    "capability-compiler",
+    "compile",
+    "dev",
+    "registry"
+  ],
+  "version": "1.0.0"
+}

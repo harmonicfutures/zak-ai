@@ -1,0 +1,84 @@
+adapter:
+  key: ide-phase1
+  route: io.supabase_sync
+authority_requirements: standard
+capability: zak.io.supabase_sync
+description: Syncs ZAK memory records to Supabase to maintain persistent state
+  across sessions. Supports receipt records, capability state, and session
+  context. Keyed idempotency on record_id prevents duplicate writes. Does not
+  read from Supabase — write-only sync surface.
+execution_class: B
+golden:
+  input:
+    payload:
+      content: golden test memory record
+      source: test
+    record_id: memory-golden-test-001
+    record_type: memory_update
+    table: zak_memory
+idempotency: keyed
+input_schema:
+  additionalProperties: false
+  properties:
+    execution_receipt_hash:
+      description: Optional. Links this sync operation to a ZAKAI execution receipt
+        for audit trail continuity.
+      type: string
+    payload:
+      additionalProperties: true
+      description: The record payload to upsert. Must be serialisable to JSON.
+      type: object
+    record_id:
+      description: Unique identifier for this record. Used as the idempotency key. For
+        receipts, use the receipt_id. For capabilities, use capability_id +
+        version.
+      type: string
+    record_type:
+      description: The type of record being synced.
+      enum:
+        - receipt
+        - capability_state
+        - session_context
+        - memory_update
+      type: string
+    table:
+      description: Target Supabase table name.
+      pattern: ^[a-z][a-z0-9_]*$
+      type: string
+  required:
+    - record_type
+    - record_id
+    - table
+    - payload
+  type: object
+output_schema:
+  additionalProperties: false
+  properties:
+    error:
+      type: string
+    record_id:
+      type: string
+    record_type:
+      type: string
+    synced:
+      type: boolean
+    table:
+      type: string
+    upserted:
+      type: boolean
+  required:
+    - synced
+    - record_id
+    - table
+    - record_type
+    - upserted
+  type: object
+replay_behavior: allowed_same_key
+side_effect_tier: medium
+tags:
+  - io
+  - supabase
+  - memory
+  - sync
+  - persistence
+version: 1.0.0

@@ -1,0 +1,70 @@
+capability: zak.dev.write_worksheet
+version: 1.0.0
+description: >-
+  Authors and writes a capability worksheet.yaml to the filesystem. This is the birthing capability — it creates the
+  machine source of truth for a new capability. Idempotent on capability_id + version key. Does not compile or register
+  — only writes the worksheet.
+tags:
+  - dev
+  - write
+  - worksheet
+  - capability-authoring
+adapter:
+  key: ide-phase1
+  route: dev.write_worksheet
+execution_class: B
+authority_requirements: standard
+side_effect_tier: medium
+idempotency: keyed
+replay_behavior: allowed_same_key
+input_schema:
+  type: object
+  properties:
+    capability_id:
+      type: string
+      description: The capability identifier. Must match ^(hai|zak).[a-z][a-z0-9_.]*$
+      pattern: ^(hai|zak)\.[a-z][a-z0-9_.]*$
+    version:
+      type: string
+      description: SemVer version string.
+      pattern: ^\d+\.\d+\.\d+$
+    worksheet_content:
+      type: object
+      description: >-
+        The full worksheet as a structured object. Validated structurally before write. Must include all required fields
+        per the capability compiler spec.
+      additionalProperties: true
+    overwrite:
+      type: boolean
+      description: Whether to overwrite an existing worksheet.yaml. Defaults to false to prevent accidental clobber.
+      default: false
+  required:
+    - capability_id
+    - version
+    - worksheet_content
+  additionalProperties: false
+output_schema:
+  type: object
+  properties:
+    written_path:
+      type: string
+    capability_id:
+      type: string
+    version:
+      type: string
+    overwritten:
+      type: boolean
+  required:
+    - written_path
+    - capability_id
+    - version
+    - overwritten
+  additionalProperties: false
+golden:
+  input:
+    capability_id: zak.dev.write_worksheet
+    version: 1.0.0
+    worksheet_content:
+      capability: zak.dev.write_worksheet
+      version: 1.0.0
+    overwrite: false

@@ -1,0 +1,56 @@
+{
+  "adapter": {
+    "key": "ide-phase1",
+    "route": "dev.propose_membrane_admission"
+  },
+  "capability": "zak.dev.propose_membrane_admission",
+  "description": "Formalizes the membrane whitelisting step as a governed proposal. After a capability compiles and tests pass, ZAK issues a proposal.json receipt containing the capability_id, version, definition_hash, and a cryptographic signature. The human reviews and seals the proposal with one click — updating capability_snapshot.json only under that authorization. Replaces ungoverned hand-editing of the snapshot.",
+  "input_schema": {
+    "additionalProperties": false,
+    "properties": {
+      "capability_id": {
+        "description": "The capability identifier being proposed for membrane admission.",
+        "pattern": "^(hai|zak)\\.[a-z][a-z0-9_.]*$",
+        "type": "string"
+      },
+      "compile_receipt_id": {
+        "description": "The receipt_id from the zak.dev.compile execution. Links the proposal to a specific compilation event.",
+        "type": "string"
+      },
+      "definition_hash": {
+        "description": "The definition hash from the compiled definition.hash file. Must match the compiled artifact exactly.",
+        "type": "string"
+      },
+      "justification": {
+        "description": "Human-readable justification for membrane admission. What does this capability enable and why does it belong in the membrane?",
+        "type": "string"
+      },
+      "test_receipt_id": {
+        "description": "The receipt_id from the zak.dev.test_runner execution that verified this capability. Links the proposal to verified test passage.",
+        "type": "string"
+      },
+      "version": {
+        "description": "SemVer version string.",
+        "pattern": "^\\d+\\.\\d+\\.\\d+$",
+        "type": "string"
+      }
+    },
+    "required": [
+      "capability_id",
+      "version",
+      "definition_hash",
+      "test_receipt_id",
+      "compile_receipt_id",
+      "justification"
+    ],
+    "type": "object"
+  },
+  "tags": [
+    "admission",
+    "dev",
+    "governance",
+    "membrane",
+    "proposal"
+  ],
+  "version": "1.0.0"
+}

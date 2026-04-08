@@ -1,0 +1,46 @@
+{
+  "adapter": {
+    "key": "ide-phase1",
+    "route": "dev.test_runner"
+  },
+  "capability": "zak.dev.test_runner",
+  "description": "Executes npm test against the emitted test.spec.ts for a compiled capability. Verifies definition hash integrity and golden input validation. A failing test blocks progression to membrane proposal. Maximum 3 self-correction attempts before emitting a failed_compilation receipt and stopping.",
+  "input_schema": {
+    "additionalProperties": false,
+    "properties": {
+      "attempt_number": {
+        "default": 1,
+        "description": "Which self-correction attempt this is. Must be 1, 2, or 3. If 3 fails, emit failed_compilation receipt and stop.",
+        "maximum": 3,
+        "minimum": 1,
+        "type": "integer"
+      },
+      "capability_id": {
+        "description": "The capability identifier to test.",
+        "pattern": "^(hai|zak)\\.[a-z][a-z0-9_.]*$",
+        "type": "string"
+      },
+      "self_correction_context": {
+        "description": "Optional. The error output from a previous failed attempt, passed so ZAK can reason about the correction needed.",
+        "type": "string"
+      },
+      "version": {
+        "description": "SemVer version string.",
+        "pattern": "^\\d+\\.\\d+\\.\\d+$",
+        "type": "string"
+      }
+    },
+    "required": [
+      "capability_id",
+      "version"
+    ],
+    "type": "object"
+  },
+  "tags": [
+    "dev",
+    "test",
+    "verification",
+    "vitest"
+  ],
+  "version": "1.0.0"
+}

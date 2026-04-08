@@ -1,0 +1,49 @@
+{
+  "authority_requirements": "standard",
+  "compiler_version": "0.1.0",
+  "execution_class": "B",
+  "generated_by": "@zak/capability-compiler",
+  "idempotency": "inherent",
+  "output_schema": {
+    "additionalProperties": false,
+    "properties": {
+      "attempt_number": {
+        "type": "integer"
+      },
+      "capability_id": {
+        "type": "string"
+      },
+      "definition_hash_verified": {
+        "type": "boolean"
+      },
+      "error_output": {
+        "type": "string"
+      },
+      "golden_input_validated": {
+        "type": "boolean"
+      },
+      "halt": {
+        "type": "boolean"
+      },
+      "passed": {
+        "type": "boolean"
+      },
+      "self_correction_possible": {
+        "type": "boolean"
+      },
+      "version": {
+        "type": "string"
+      }
+    },
+    "required": [
+      "passed",
+      "capability_id",
+      "version",
+      "attempt_number"
+    ],
+    "type": "object"
+  },
+  "replay_behavior": "allowed_read_only_subset",
+  "side_effect_tier": "low",
+  "template_version": "1.2.1"
+}

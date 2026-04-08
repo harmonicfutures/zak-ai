@@ -1,0 +1,94 @@
+capability: zak.dev.propose_membrane_admission
+version: 1.0.0
+description: >-
+  Formalizes the membrane whitelisting step as a governed proposal. After a capability compiles and tests pass, ZAK
+  issues a proposal.json receipt containing the capability_id, version, definition_hash, and a cryptographic signature.
+  The human reviews and seals the proposal with one click — updating capability_snapshot.json only under that
+  authorization. Replaces ungoverned hand-editing of the snapshot.
+tags:
+  - dev
+  - membrane
+  - admission
+  - proposal
+  - governance
+adapter:
+  key: ide-phase1
+  route: dev.propose_membrane_admission
+execution_class: B
+authority_requirements: elevated
+side_effect_tier: medium
+idempotency: keyed
+replay_behavior: blocked
+input_schema:
+  type: object
+  properties:
+    capability_id:
+      type: string
+      description: The capability identifier being proposed for membrane admission.
+      pattern: ^(hai|zak)\.[a-z][a-z0-9_.]*$
+    version:
+      type: string
+      description: SemVer version string.
+      pattern: ^\d+\.\d+\.\d+$
+    definition_hash:
+      type: string
+      description: The definition hash from the compiled definition.hash file. Must match the compiled artifact exactly.
+    test_receipt_id:
+      type: string
+      description: >-
+        The receipt_id from the zak.dev.test_runner execution that verified this capability. Links the proposal to
+        verified test passage.
+    compile_receipt_id:
+      type: string
+      description: The receipt_id from the zak.dev.compile execution. Links the proposal to a specific compilation event.
+    justification:
+      type: string
+      description: >-
+        Human-readable justification for membrane admission. What does this capability enable and why does it belong in
+        the membrane?
+  required:
+    - capability_id
+    - version
+    - definition_hash
+    - test_receipt_id
+    - compile_receipt_id
+    - justification
+  additionalProperties: false
+output_schema:
+  type: object
+  properties:
+    proposal_id:
+      type: string
+    capability_id:
+      type: string
+    version:
+      type: string
+    definition_hash:
+      type: string
+    proposal_receipt_path:
+      type: string
+    status:
+      type: string
+      enum:
+        - pending_human_seal
+        - sealed
+        - rejected
+    proposed_at:
+      type: integer
+  required:
+    - proposal_id
+    - capability_id
+    - version
+    - definition_hash
+    - proposal_receipt_path
+    - status
+    - proposed_at
+  additionalProperties: false
+golden:
+  input:
+    capability_id: zak.sys.list_capabilities
+    version: 1.0.0
+    definition_hash: golden-test-hash-placeholder
+    test_receipt_id: test-receipt-golden-001
+    compile_receipt_id: compile-receipt-golden-001
+    justification: Enables ZAK to inspect existing capabilities before authoring new ones, preventing duplication.

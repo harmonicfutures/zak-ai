@@ -1,0 +1,6 @@
+{
+  "input": {
+    "max_depth": 1,
+    "path": "src/index.ts"
+  }
+}

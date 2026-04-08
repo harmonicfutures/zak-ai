@@ -1,0 +1,11 @@
+{
+  "input": {
+    "payload": {
+      "content": "golden test memory record",
+      "source": "test"
+    },
+    "record_id": "memory-golden-test-001",
+    "record_type": "memory_update",
+    "table": "zak_memory"
+  }
+}

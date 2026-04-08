@@ -1,0 +1,11 @@
+{
+  "input": {
+    "capability_id": "zak.dev.write_worksheet",
+    "overwrite": false,
+    "version": "1.0.0",
+    "worksheet_content": {
+      "capability": "zak.dev.write_worksheet",
+      "version": "1.0.0"
+    }
+  }
+}
