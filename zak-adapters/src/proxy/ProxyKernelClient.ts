@@ -281,7 +281,20 @@ export class ProxyKernelClient implements KernelRuntime {
       .map((s) => s.trim())
       .filter(Boolean);
 
-    const declared = caps.length > 0 ? caps : [KERNEL_BRIDGE, "search_files", "list_files", "read_file", "commit_edit", "conversation.respond"];
+    const declared = caps.length > 0
+      ? caps
+      : [
+          KERNEL_BRIDGE,
+          "search_files",
+          "list_files",
+          "read_file",
+          "commit_edit",
+          "conversation.respond",
+          "zak.dev.write_worksheet",
+          "zak.dev.compile",
+          "zak.dev.test_runner",
+          "zak.dev.propose_membrane_admission",
+        ];
 
     const regLine =
       JSON.stringify({

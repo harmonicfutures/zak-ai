@@ -13,6 +13,10 @@
         "pattern": "^(hai|zak)\\.[a-z][a-z0-9_.]*$",
         "type": "string"
       },
+      "idempotency_key": {
+        "description": "Stable key for replay-safe worksheet writes. Use capability_id + version for identical writes.",
+        "type": "string"
+      },
       "overwrite": {
         "default": false,
         "description": "Whether to overwrite an existing worksheet.yaml. Defaults to false to prevent accidental clobber.",
@@ -32,7 +36,8 @@
     "required": [
       "capability_id",
       "version",
-      "worksheet_content"
+      "worksheet_content",
+      "idempotency_key"
     ],
     "type": "object"
   },

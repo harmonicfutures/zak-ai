@@ -11,6 +11,7 @@ execution_class: B
 golden:
   input:
     capability_id: zak.dev.write_worksheet
+    idempotency_key: zak.dev.write_worksheet:zak.dev.write_worksheet:1.0.0
     overwrite: false
     version: 1.0.0
     worksheet_content:
@@ -23,6 +24,10 @@ input_schema:
     capability_id:
       description: The capability identifier. Must match ^(hai|zak).[a-z][a-z0-9_.]*$
       pattern: ^(hai|zak)\.[a-z][a-z0-9_.]*$
+      type: string
+    idempotency_key:
+      description: Stable key for replay-safe worksheet writes. Use capability_id +
+        version for identical writes.
       type: string
     overwrite:
       default: false
@@ -43,6 +48,7 @@ input_schema:
     - capability_id
     - version
     - worksheet_content
+    - idempotency_key
   type: object
 output_schema:
   additionalProperties: false

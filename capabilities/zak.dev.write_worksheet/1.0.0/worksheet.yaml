@@ -38,10 +38,14 @@ input_schema:
       type: boolean
       description: Whether to overwrite an existing worksheet.yaml. Defaults to false to prevent accidental clobber.
       default: false
+    idempotency_key:
+      type: string
+      description: Stable key for replay-safe worksheet writes. Use capability_id + version for identical writes.
   required:
     - capability_id
     - version
     - worksheet_content
+    - idempotency_key
   additionalProperties: false
 output_schema:
   type: object
@@ -68,3 +72,4 @@ golden:
       capability: zak.dev.write_worksheet
       version: 1.0.0
     overwrite: false
+    idempotency_key: zak.dev.write_worksheet:zak.dev.write_worksheet:1.0.0

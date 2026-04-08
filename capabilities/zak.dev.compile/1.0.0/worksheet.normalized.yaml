@@ -12,6 +12,7 @@ execution_class: B
 golden:
   input:
     capability_id: zak.sys.list_capabilities
+    idempotency_key: zak.dev.compile:zak.sys.list_capabilities:1.0.0:false:../capabilities
     nested_version: false
     version: 1.0.0
 idempotency: keyed
@@ -21,6 +22,10 @@ input_schema:
     capability_id:
       description: The capability identifier to compile.
       pattern: ^(hai|zak)\.[a-z][a-z0-9_.]*$
+      type: string
+    idempotency_key:
+      description: Stable key for replay-safe compilation. Bind capability_id,
+        version, nested_version, and out_dir.
       type: string
     nested_version:
       default: false
@@ -38,6 +43,7 @@ input_schema:
   required:
     - capability_id
     - version
+    - idempotency_key
   type: object
 output_schema:
   additionalProperties: false

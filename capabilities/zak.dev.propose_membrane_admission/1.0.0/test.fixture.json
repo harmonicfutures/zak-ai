@@ -3,6 +3,7 @@
     "capability_id": "zak.sys.list_capabilities",
     "compile_receipt_id": "compile-receipt-golden-001",
     "definition_hash": "golden-test-hash-placeholder",
+    "idempotency_key": "zak.dev.propose_membrane_admission:zak.sys.list_capabilities:1.0.0:golden-test-hash-placeholder",
     "justification": "Enables ZAK to inspect existing capabilities before authoring new ones, preventing duplication.",
     "test_receipt_id": "test-receipt-golden-001",
     "version": "1.0.0"

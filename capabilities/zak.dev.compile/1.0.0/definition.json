@@ -13,6 +13,10 @@
         "pattern": "^(hai|zak)\\.[a-z][a-z0-9_.]*$",
         "type": "string"
       },
+      "idempotency_key": {
+        "description": "Stable key for replay-safe compilation. Bind capability_id, version, nested_version, and out_dir.",
+        "type": "string"
+      },
       "nested_version": {
         "default": false,
         "description": "Whether to emit under capabilities/<cap>/<version>/ layout. Defaults to false.",
@@ -31,7 +35,8 @@
     },
     "required": [
       "capability_id",
-      "version"
+      "version",
+      "idempotency_key"
     ],
     "type": "object"
   },

@@ -36,9 +36,13 @@ input_schema:
       type: string
       description: Output directory for compiled artifacts. Defaults to ../capabilities.
       default: ../capabilities
+    idempotency_key:
+      type: string
+      description: Stable key for replay-safe compilation. Bind capability_id, version, nested_version, and out_dir.
   required:
     - capability_id
     - version
+    - idempotency_key
   additionalProperties: false
 output_schema:
   type: object
@@ -67,3 +71,4 @@ golden:
     capability_id: zak.sys.list_capabilities
     version: 1.0.0
     nested_version: false
+    idempotency_key: zak.dev.compile:zak.sys.list_capabilities:1.0.0:false:../capabilities

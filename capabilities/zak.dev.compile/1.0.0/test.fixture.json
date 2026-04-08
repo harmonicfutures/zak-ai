@@ -1,6 +1,7 @@
 {
   "input": {
     "capability_id": "zak.sys.list_capabilities",
+    "idempotency_key": "zak.dev.compile:zak.sys.list_capabilities:1.0.0:false:../capabilities",
     "nested_version": false,
     "version": "1.0.0"
   }

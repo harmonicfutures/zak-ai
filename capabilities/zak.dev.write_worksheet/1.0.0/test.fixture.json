@@ -1,6 +1,7 @@
 {
   "input": {
     "capability_id": "zak.dev.write_worksheet",
+    "idempotency_key": "zak.dev.write_worksheet:zak.dev.write_worksheet:1.0.0",
     "overwrite": false,
     "version": "1.0.0",
     "worksheet_content": {

@@ -7,6 +7,8 @@
 import crypto from "crypto";
 import fs from "fs";
 import path from "path";
+import { execFileSync } from "child_process";
+import { fileURLToPath } from "url";
 
 function canonical(obj) {
   return JSON.stringify(obj, Object.keys(obj).sort(), 0);
@@ -14,6 +16,33 @@ function canonical(obj) {
 
 function deny(error) {
   return { ok: false, error, outcome: "denied" };
+}
+
+const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+const capabilitiesRoot = path.join(repoRoot, "capabilities");
+const compilerCliPath = path.join(repoRoot, "capability-compiler", "dist", "cli.js");
+const vitestCliPath = path.join(repoRoot, "capability-compiler", "node_modules", "vitest", "vitest.mjs");
+
+function capabilityVersionDir(capabilityId, version) {
+  return path.join(capabilitiesRoot, capabilityId, version);
+}
+
+function safeExec(file, args, cwd) {
+  try {
+    const stdout = execFileSync(file, args, {
+      cwd,
+      encoding: "utf8",
+      stdio: ["ignore", "pipe", "pipe"],
+    });
+    return { ok: true, stdout };
+  } catch (error) {
+    const stdout = typeof error?.stdout === "string" ? error.stdout : "";
+    const stderr = typeof error?.stderr === "string" ? error.stderr : "";
+    return {
+      ok: false,
+      error: `${stdout}${stderr}`.trim() || String(error),
+    };
+  }
 }
 
 function extractChatContent(message) {
@@ -195,6 +224,257 @@ function executeCommitEdit(payload) {
   };
 }
 
+function executeWriteWorksheet(payload) {
+  const capabilityRequest = payload && typeof payload === "object" ? payload.capability_request : null;
+  const input = capabilityRequest && typeof capabilityRequest === "object" ? capabilityRequest.input : null;
+
+  const capabilityId = input && typeof input === "object" ? input.capability_id : null;
+  const version = input && typeof input === "object" ? input.version : null;
+  const worksheetContent = input && typeof input === "object" ? input.worksheet_content : null;
+  const overwrite = input && typeof input === "object" ? input.overwrite === true : false;
+
+  if (typeof capabilityId !== "string" || capabilityId.trim().length === 0) {
+    return deny("invalid_capability_id");
+  }
+  if (typeof version !== "string" || version.trim().length === 0) {
+    return deny("invalid_capability_version");
+  }
+  if (!worksheetContent || typeof worksheetContent !== "object" || Array.isArray(worksheetContent)) {
+    return deny("invalid_worksheet_content");
+  }
+
+  const targetDir = capabilityVersionDir(capabilityId, version);
+  const targetPath = path.join(targetDir, "worksheet.yaml");
+  const existed = fs.existsSync(targetPath);
+  if (existed && !overwrite) {
+    return {
+      ok: true,
+      outcome: "success",
+      output: {
+        written_path: targetPath,
+        capability_id: capabilityId,
+        version,
+        overwritten: false,
+      },
+    };
+  }
+
+  fs.mkdirSync(targetDir, { recursive: true });
+  fs.writeFileSync(targetPath, `${JSON.stringify(worksheetContent, null, 2)}\n`, "utf8");
+
+  return {
+    ok: true,
+    outcome: "success",
+    output: {
+      written_path: targetPath,
+      capability_id: capabilityId,
+      version,
+      overwritten: existed,
+    },
+  };
+}
+
+function executeCompileCapability(payload) {
+  const capabilityRequest = payload && typeof payload === "object" ? payload.capability_request : null;
+  const input = capabilityRequest && typeof capabilityRequest === "object" ? capabilityRequest.input : null;
+
+  const capabilityId = input && typeof input === "object" ? input.capability_id : null;
+  const version = input && typeof input === "object" ? input.version : null;
+  const nestedVersion = input && typeof input === "object" ? input.nested_version === true : false;
+  const outDir = input && typeof input === "object" && typeof input.out_dir === "string"
+    ? input.out_dir
+    : "../capabilities";
+
+  if (typeof capabilityId !== "string" || capabilityId.trim().length === 0) {
+    return deny("invalid_capability_id");
+  }
+  if (typeof version !== "string" || version.trim().length === 0) {
+    return deny("invalid_capability_version");
+  }
+  if (!fs.existsSync(compilerCliPath)) {
+    return deny("compiler_cli_missing");
+  }
+
+  const worksheetPath = path.join(capabilityVersionDir(capabilityId, version), "worksheet.yaml");
+  if (!fs.existsSync(worksheetPath)) {
+    return {
+      ok: true,
+      outcome: "success",
+      output: {
+        success: false,
+        capability_id: capabilityId,
+        version,
+        error: "worksheet_missing",
+      },
+    };
+  }
+
+  const outputBase = path.resolve(path.dirname(compilerCliPath), outDir);
+  const args = [compilerCliPath, "compile", worksheetPath, "--out", outputBase];
+  if (nestedVersion) {
+    args.push("--nested-version");
+  }
+  const compileRun = safeExec(process.execPath, args, repoRoot);
+  if (!compileRun.ok) {
+    return {
+      ok: true,
+      outcome: "success",
+      output: {
+        success: false,
+        capability_id: capabilityId,
+        version,
+        error: compileRun.error,
+      },
+    };
+  }
+
+  const outDirPath = nestedVersion
+    ? path.join(outputBase, capabilityId, version)
+    : path.join(outputBase, capabilityId);
+  const definitionHashPath = path.join(outDirPath, "definition.hash");
+  const emittedFiles = fs.existsSync(outDirPath)
+    ? fs.readdirSync(outDirPath).map((file) => path.join(outDirPath, file))
+    : [];
+
+  return {
+    ok: true,
+    outcome: "success",
+    output: {
+      success: true,
+      capability_id: capabilityId,
+      version,
+      definition_hash: fs.existsSync(definitionHashPath)
+        ? fs.readFileSync(definitionHashPath, "utf8").trim()
+        : undefined,
+      emitted_files: emittedFiles,
+    },
+  };
+}
+
+function executeCapabilityTest(payload) {
+  const capabilityRequest = payload && typeof payload === "object" ? payload.capability_request : null;
+  const input = capabilityRequest && typeof capabilityRequest === "object" ? capabilityRequest.input : null;
+
+  const capabilityId = input && typeof input === "object" ? input.capability_id : null;
+  const version = input && typeof input === "object" ? input.version : null;
+  const attemptNumber = input && typeof input === "object" ? input.attempt_number : null;
+
+  if (typeof capabilityId !== "string" || capabilityId.trim().length === 0) {
+    return deny("invalid_capability_id");
+  }
+  if (typeof version !== "string" || version.trim().length === 0) {
+    return deny("invalid_capability_version");
+  }
+  if (typeof attemptNumber !== "number" || !Number.isInteger(attemptNumber) || attemptNumber < 1 || attemptNumber > 3) {
+    return deny("invalid_attempt_number");
+  }
+  if (!fs.existsSync(vitestCliPath)) {
+    return deny("vitest_cli_missing");
+  }
+
+  const specPath = path.join(capabilityVersionDir(capabilityId, version), "test.spec.ts");
+  if (!fs.existsSync(specPath)) {
+    return {
+      ok: true,
+      outcome: "success",
+      output: {
+        passed: false,
+        capability_id: capabilityId,
+        version,
+        attempt_number: attemptNumber,
+        definition_hash_verified: false,
+        golden_input_validated: false,
+        self_correction_possible: attemptNumber < 3,
+        halt: attemptNumber >= 3,
+        error_output: "test_spec_missing",
+      },
+    };
+  }
+
+  const testRun = safeExec(process.execPath, [vitestCliPath, "run", specPath], repoRoot);
+  const passed = testRun.ok;
+  return {
+    ok: true,
+    outcome: "success",
+    output: {
+      passed,
+      capability_id: capabilityId,
+      version,
+      definition_hash_verified: passed,
+      golden_input_validated: passed,
+      attempt_number: attemptNumber,
+      error_output: passed ? undefined : testRun.error,
+      self_correction_possible: !passed && attemptNumber < 3,
+      halt: !passed && attemptNumber >= 3,
+    },
+  };
+}
+
+function executeProposeMembraneAdmission(payload) {
+  const capabilityRequest = payload && typeof payload === "object" ? payload.capability_request : null;
+  const input = capabilityRequest && typeof capabilityRequest === "object" ? capabilityRequest.input : null;
+
+  const capabilityId = input && typeof input === "object" ? input.capability_id : null;
+  const version = input && typeof input === "object" ? input.version : null;
+  const definitionHash = input && typeof input === "object" ? input.definition_hash : null;
+  const testReceiptId = input && typeof input === "object" ? input.test_receipt_id : null;
+  const compileReceiptId = input && typeof input === "object" ? input.compile_receipt_id : null;
+  const justification = input && typeof input === "object" ? input.justification : null;
+
+  if (
+    typeof capabilityId !== "string" || capabilityId.trim().length === 0
+    || typeof version !== "string" || version.trim().length === 0
+    || typeof definitionHash !== "string" || definitionHash.trim().length === 0
+    || typeof testReceiptId !== "string" || testReceiptId.trim().length === 0
+    || typeof compileReceiptId !== "string" || compileReceiptId.trim().length === 0
+    || typeof justification !== "string" || justification.trim().length === 0
+  ) {
+    return deny("invalid_proposal_input");
+  }
+
+  const proposalsDir = path.join(repoRoot, "engine", "proposals");
+  fs.mkdirSync(proposalsDir, { recursive: true });
+
+  const proposedAt = Date.now();
+  const proposalId = `proposal_${proposedAt}_${Math.random().toString(36).slice(2, 8)}`;
+  const proposal = {
+    proposal_id: proposalId,
+    capability_id: capabilityId,
+    version,
+    definition_hash: definitionHash,
+    test_receipt_id: testReceiptId,
+    compile_receipt_id: compileReceiptId,
+    justification,
+    status: "pending_human_seal",
+    proposed_at: proposedAt,
+    signature: crypto.createHash("sha256").update(canonical({
+      capabilityId,
+      version,
+      definitionHash,
+      testReceiptId,
+      compileReceiptId,
+      justification,
+      proposedAt,
+    }), "utf8").digest("hex"),
+  };
+  const proposalReceiptPath = path.join(proposalsDir, `${proposalId}.json`);
+  fs.writeFileSync(proposalReceiptPath, `${JSON.stringify(proposal, null, 2)}\n`, "utf8");
+
+  return {
+    ok: true,
+    outcome: "success",
+    output: {
+      proposal_id: proposalId,
+      capability_id: capabilityId,
+      version,
+      definition_hash: definitionHash,
+      proposal_receipt_path: proposalReceiptPath,
+      status: "pending_human_seal",
+      proposed_at: proposedAt,
+    },
+  };
+}
+
 async function executeConversationRespond(payload) {
   const capabilityRequest = payload && typeof payload === "object" ? payload.capability_request : null;
   if (!capabilityRequest || typeof capabilityRequest !== "object") {
@@ -328,6 +608,14 @@ function main() {
       out = executeSearchFiles(env.payload);
     } else if (requestedCapability === "list_files") {
       out = executeListFiles(env.payload);
+    } else if (requestedCapability === "zak.dev.write_worksheet") {
+      out = executeWriteWorksheet(env.payload);
+    } else if (requestedCapability === "zak.dev.compile") {
+      out = executeCompileCapability(env.payload);
+    } else if (requestedCapability === "zak.dev.test_runner") {
+      out = executeCapabilityTest(env.payload);
+    } else if (requestedCapability === "zak.dev.propose_membrane_admission") {
+      out = executeProposeMembraneAdmission(env.payload);
     } else if (requestedCapability === "commit_edit") {
       out = executeCommitEdit(env.payload);
     } else if (requestedCapability === "read_file") {

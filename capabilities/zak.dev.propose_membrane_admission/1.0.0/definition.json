@@ -21,6 +21,10 @@
         "description": "The definition hash from the compiled definition.hash file. Must match the compiled artifact exactly.",
         "type": "string"
       },
+      "idempotency_key": {
+        "description": "Stable key for replay-safe membrane proposals. Bind capability_id, version, and definition_hash.",
+        "type": "string"
+      },
       "justification": {
         "description": "Human-readable justification for membrane admission. What does this capability enable and why does it belong in the membrane?",
         "type": "string"
@@ -41,7 +45,8 @@
       "definition_hash",
       "test_receipt_id",
       "compile_receipt_id",
-      "justification"
+      "justification",
+      "idempotency_key"
     ],
     "type": "object"
   },

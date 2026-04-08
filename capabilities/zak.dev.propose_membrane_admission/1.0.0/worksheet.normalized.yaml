@@ -15,6 +15,7 @@ golden:
     capability_id: zak.sys.list_capabilities
     compile_receipt_id: compile-receipt-golden-001
     definition_hash: golden-test-hash-placeholder
+    idempotency_key: zak.dev.propose_membrane_admission:zak.sys.list_capabilities:1.0.0:golden-test-hash-placeholder
     justification: Enables ZAK to inspect existing capabilities before authoring new
       ones, preventing duplication.
     test_receipt_id: test-receipt-golden-001
@@ -35,6 +36,10 @@ input_schema:
       description: The definition hash from the compiled definition.hash file. Must
         match the compiled artifact exactly.
       type: string
+    idempotency_key:
+      description: Stable key for replay-safe membrane proposals. Bind capability_id,
+        version, and definition_hash.
+      type: string
     justification:
       description: Human-readable justification for membrane admission. What does this
         capability enable and why does it belong in the membrane?
@@ -54,6 +59,7 @@ input_schema:
     - test_receipt_id
     - compile_receipt_id
     - justification
+    - idempotency_key
   type: object
 output_schema:
   additionalProperties: false
