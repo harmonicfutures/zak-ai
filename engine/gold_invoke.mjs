@@ -75,6 +75,51 @@ function executeSearchFiles(payload) {
   };
 }
 
+function executeReadFile(payload) {
+  const capabilityRequest = payload && typeof payload === "object" ? payload.capability_request : null;
+  const workspaceFile = payload && typeof payload === "object" ? payload.workspace_file : null;
+
+  if (!capabilityRequest || typeof capabilityRequest !== "object") {
+    return deny("missing_capability_request");
+  }
+  if (!workspaceFile || typeof workspaceFile !== "object") {
+    return deny("missing_workspace_file");
+  }
+
+  const input = capabilityRequest.input;
+  const requestedPath = input && typeof input === "object" ? input.path : null;
+  const actualPath = typeof workspaceFile.path === "string" ? workspaceFile.path : null;
+  const content = typeof workspaceFile.content === "string" ? workspaceFile.content : null;
+
+  if (typeof requestedPath !== "string" || requestedPath.trim().length === 0) {
+    return deny("invalid_read_path");
+  }
+  if (requestedPath !== actualPath) {
+    return deny("workspace_file_path_mismatch");
+  }
+  if (content === null) {
+    return deny("invalid_workspace_file_content");
+  }
+
+  return {
+    ok: true,
+    outcome: "success",
+    output: {
+      capability: "read_file",
+      authorityContextId:
+        typeof workspaceFile.authority_context_id === "string"
+          ? workspaceFile.authority_context_id
+          : null,
+      workspaceName:
+        typeof workspaceFile.workspace_name === "string"
+          ? workspaceFile.workspace_name
+          : null,
+      path: actualPath,
+      content,
+    },
+  };
+}
+
 async function executeConversationRespond(payload) {
   const capabilityRequest = payload && typeof payload === "object" ? payload.capability_request : null;
   if (!capabilityRequest || typeof capabilityRequest !== "object") {
@@ -206,6 +251,8 @@ function main() {
     let out;
     if (requestedCapability === "search_files") {
       out = executeSearchFiles(env.payload);
+    } else if (requestedCapability === "read_file") {
+      out = executeReadFile(env.payload);
     } else if (requestedCapability === "conversation.respond") {
       out = await executeConversationRespond(env.payload);
     } else {
