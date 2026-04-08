@@ -1249,6 +1249,12 @@ class KernelCallProxy:
                             },
                         )
                         proxy._emit_receipt(exec_rec)
+                        if (
+                            gold_out.get("ok")
+                            and isinstance(gold_out.get("output"), dict)
+                            and isinstance(gold_out["output"].get("authorization"), dict)
+                        ):
+                            gold_out["output"]["authorization"]["execution_receipt_hash"] = exec_rec["receipt_id"]
                         write_obj(
                             {
                                 "ok": bool(gold_out.get("ok")),

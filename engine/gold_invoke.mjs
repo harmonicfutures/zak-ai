@@ -120,6 +120,47 @@ function executeReadFile(payload) {
   };
 }
 
+function executeCommitEdit(payload) {
+  const capabilityRequest = payload && typeof payload === "object" ? payload.capability_request : null;
+  const input = capabilityRequest && typeof capabilityRequest === "object" ? capabilityRequest.input : null;
+
+  const pathRef = input && typeof input === "object" ? input.path : null;
+  const content = input && typeof input === "object" ? input.content : null;
+  const surfaceId = input && typeof input === "object" ? input.surface_id : null;
+
+  if (typeof pathRef !== "string" || pathRef.trim().length === 0) {
+    return deny("invalid_commit_path");
+  }
+  if (typeof content !== "string") {
+    return deny("invalid_commit_content");
+  }
+  if (typeof surfaceId !== "string" || surfaceId.trim().length === 0) {
+    return deny("invalid_surface_id");
+  }
+
+  const payloadHash = `sha256:${crypto.createHash("sha256").update(content, "utf8").digest("hex")}`;
+  const issuedAt = Date.now();
+
+  return {
+    ok: true,
+    outcome: "success",
+    output: {
+      capability: "commit_edit",
+      authorization: {
+        authorization_id: `auth_${issuedAt}_${Math.random().toString(36).slice(2, 8)}`,
+        execution_receipt_hash: "",
+        surface_id: surfaceId,
+        capability: "commit_edit",
+        resource_ref: pathRef,
+        payload_hash: payloadHash,
+        issued_at: issuedAt,
+        expires_at: issuedAt + 30000,
+        signature: "zakai-runtime-signature-pending",
+      },
+    },
+  };
+}
+
 async function executeConversationRespond(payload) {
   const capabilityRequest = payload && typeof payload === "object" ? payload.capability_request : null;
   if (!capabilityRequest || typeof capabilityRequest !== "object") {
@@ -251,6 +292,8 @@ function main() {
     let out;
     if (requestedCapability === "search_files") {
       out = executeSearchFiles(env.payload);
+    } else if (requestedCapability === "commit_edit") {
+      out = executeCommitEdit(env.payload);
     } else if (requestedCapability === "read_file") {
       out = executeReadFile(env.payload);
     } else if (requestedCapability === "conversation.respond") {
