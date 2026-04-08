@@ -107,13 +107,7 @@ export class ProxyKernelClient implements KernelRuntime {
     }
 
     const intentId = envelope.intentId;
-    const proposal = {
-      capability: KERNEL_BRIDGE,
-      from_module: this.routing.fromModule,
-      to_module: this.routing.toModule,
-      intent_id: intentId,
-      payload,
-    };
+    const proposal = buildProposal(payload, intentId, this.routing);
 
     const admitFrame: JsonObject = {
       op: "admit",
@@ -159,7 +153,14 @@ export class ProxyKernelClient implements KernelRuntime {
       context: { correlation_id: intentId },
     });
 
-    return interpretGoldExecuteResponse<O>(execRes);
+    return interpretGoldExecuteResponse<O>(execRes, {
+      admittedCapability: proposal.capability,
+      capabilityVersion:
+        typeof proposal.capability_version === "string"
+          ? proposal.capability_version
+          : undefined,
+      admitReceiptId,
+    });
   }
 
   private attachSocketHandlers(sock: net.Socket): void {
@@ -280,7 +281,7 @@ export class ProxyKernelClient implements KernelRuntime {
       .map((s) => s.trim())
       .filter(Boolean);
 
-    const declared = caps;
+    const declared = caps.length > 0 ? caps : [KERNEL_BRIDGE, "search_files"];
 
     const regLine =
       JSON.stringify({
@@ -331,12 +332,92 @@ function adversarialPayloadProbe(payload: unknown): unknown {
   return { wrapped: payload, malformed_probe: true };
 }
 
-function interpretGoldExecuteResponse<O>(res: JsonObject): KernelResult<O> {
+function buildProposal(
+  payload: unknown,
+  intentId: string,
+  routing: {
+    readonly fromModule: string;
+    readonly toModule: string;
+  }
+): JsonObject & {
+  capability: string;
+  from_module: string;
+  to_module: string;
+  intent_id: string;
+  payload: unknown;
+  capability_version?: string;
+  capability_definition_hash?: string;
+} {
+  if (payload !== null && typeof payload === "object" && !Array.isArray(payload)) {
+    const root = payload as Record<string, unknown>;
+    const req =
+      root.capability_request !== null
+      && typeof root.capability_request === "object"
+      && !Array.isArray(root.capability_request)
+        ? (root.capability_request as Record<string, unknown>)
+        : null;
+    const capability =
+      req && typeof req.capability === "string" && req.capability.trim().length > 0
+        ? req.capability.trim()
+        : KERNEL_BRIDGE;
+    const proposal: JsonObject & {
+      capability: string;
+      from_module: string;
+      to_module: string;
+      intent_id: string;
+      payload: unknown;
+      capability_version?: string;
+      capability_definition_hash?: string;
+    } = {
+      capability,
+      from_module: routing.fromModule,
+      to_module: routing.toModule,
+      intent_id: intentId,
+      payload,
+    };
+    if (req && typeof req.capability_version === "string" && req.capability_version.trim().length > 0) {
+      proposal.capability_version = req.capability_version.trim();
+    } else {
+      proposal.capability_version = "1.0.0";
+    }
+    if (
+      req
+      && typeof req.capability_definition_hash === "string"
+      && req.capability_definition_hash.trim().length > 0
+    ) {
+      proposal.capability_definition_hash = req.capability_definition_hash;
+    }
+    return proposal;
+  }
+
+  return {
+    capability: KERNEL_BRIDGE,
+    from_module: routing.fromModule,
+    to_module: routing.toModule,
+    intent_id: intentId,
+    payload,
+    capability_version: "1.0.0",
+  };
+}
+
+function interpretGoldExecuteResponse<O>(
+  res: JsonObject,
+  runtime: {
+    admittedCapability: string;
+    capabilityVersion?: string;
+    admitReceiptId: string;
+  }
+): KernelResult<O> {
   if (res.ok !== true || res.executed !== true) {
     const errMsg =
       typeof res.error === "string" ? res.error : "proxy execute error";
     return {
       outcome: "denied",
+      runtime: {
+        ...runtime,
+        executeReceiptId:
+          typeof res.execute_receipt_id === "string" ? res.execute_receipt_id : undefined,
+      },
       error: errMsg,
     };
   }
@@ -349,12 +430,22 @@ function interpretGoldExecuteResponse<O>(res: JsonObject): KernelResult<O> {
       return {
         outcome: "success",
         digest: g.digest as KernelResult<O>["digest"],
+        runtime: {
+          ...runtime,
+          executeReceiptId:
+            typeof res.execute_receipt_id === "string" ? res.execute_receipt_id : undefined,
+        },
         output: g.output as O,
       };
     }
     if (outcome === "denied" || g.error) {
       return {
         outcome: "denied",
+        runtime: {
+          ...runtime,
+          executeReceiptId:
+            typeof res.execute_receipt_id === "string" ? res.execute_receipt_id : undefined,
+        },
         error: String(g.error ?? "gold denied"),
       };
     }
@@ -362,6 +453,11 @@ function interpretGoldExecuteResponse<O>(res: JsonObject): KernelResult<O> {
 
   return {
     outcome: "denied",
+    runtime: {
+      ...runtime,
+      executeReceiptId:
+        typeof res.execute_receipt_id === "string" ? res.execute_receipt_id : undefined,
+    },
     error: "unexpected gold response",
   };
 }

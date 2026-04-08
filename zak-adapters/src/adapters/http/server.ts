@@ -7,9 +7,21 @@ import { HttpZakAdapter } from "./adapter";
  */
 export function startHttpAdapter(adapter: HttpZakAdapter, port = 8080) {
   const server = createServer(async (req: IncomingMessage, res: ServerResponse) => {
+    const corsHeaders = {
+      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Methods": "GET,POST,OPTIONS",
+      "Access-Control-Allow-Headers": "Content-Type,X-Correlation-ID",
+    };
+
+    if (req.method === "OPTIONS") {
+      res.writeHead(204, corsHeaders);
+      res.end();
+      return;
+    }
+
     // 1. Health Check (GET /zak/health)
     if (req.method === "GET" && req.url === "/zak/health") {
-      res.writeHead(200, { "Content-Type": "application/json" });
+      res.writeHead(200, { "Content-Type": "application/json", ...corsHeaders });
       res.end(JSON.stringify({ status: "ok", uptime: process.uptime() }));
       return;
     }
@@ -39,13 +51,13 @@ export function startHttpAdapter(adapter: HttpZakAdapter, port = 8080) {
           // C. Emit
           const output = adapter.emit(input.correlationId, result);
 
-          res.writeHead(output.status, output.headers);
+          res.writeHead(output.status, { ...output.headers, ...corsHeaders });
           res.end(JSON.stringify(output.body));
 
         } catch (err: unknown) {
           // Handle Ingest/Parse Errors
           const statusCode = (err instanceof Error && err.message.includes("Invalid")) ? 400 : 500;
-          res.writeHead(statusCode, { "Content-Type": "application/json" });
+          res.writeHead(statusCode, { "Content-Type": "application/json", ...corsHeaders });
           res.end(JSON.stringify({ 
               error: err instanceof Error ? err.message : "Internal Server Error" 
           }));
@@ -55,7 +67,7 @@ export function startHttpAdapter(adapter: HttpZakAdapter, port = 8080) {
     }
 
     // 3. 404 For Everything Else
-    res.writeHead(404);
+    res.writeHead(404, corsHeaders);
     res.end();
   });
 

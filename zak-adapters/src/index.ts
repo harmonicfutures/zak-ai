@@ -8,26 +8,18 @@ export { HttpZakAdapter } from "./adapters/http";
 export { SentryZakAdapter } from "./adapters/sentry";
 export { KERNEL_CONNECTION_LOST, ProxyKernelClient } from "./proxy";
 
-// --- MOCK KERNEL RUNTIME FOR PILOT ---
-// In a real deployment, the actual Kernel instance is injected here.
-// For the standalone adapter pilot, we use a compliant mock that demonstrates
-// the interface without importing the sovereign core.
-const mockKernel: KernelRuntime = {
+// Fail closed when the constitutional proxy is unavailable. The browser/host shell
+// must not silently downgrade to a mock runtime and pretend execution happened.
+const unavailableKernel: KernelRuntime = {
   execute: async <I, O>(envelope: ExecutionEnvelope<I, O>): Promise<KernelResult<O>> => {
-    // Simulate processing delay
-    await new Promise(resolve => setTimeout(resolve, 10));
-
-    // Return a dummy result
     return {
-      outcome: "success",
-      digest: {
-        nonceHash: "mock-nonce-hash-1234",
-        routePlanHash: "mock-route-hash-5678"
-      },
-      output: { 
-          msg: "Pilot Execution Successful", 
-          receivedPayload: envelope.payload 
-      } as O
+      outcome: "denied",
+      error:
+        "Constitutional proxy runtime is unavailable. Set ZAK_PROXY_PORT and related proxy env before executing capabilities.",
+      output: {
+        intentId: envelope.intentId,
+        receivedPayload: envelope.payload,
+      } as O,
     };
   }
 };
@@ -49,7 +41,7 @@ function kernelRuntimeForAdapterType(adapterType: string): KernelRuntime {
             : "adapters/http/adapter",
           toModule: "kernel/runner",
         };
-  return new ProxyKernelClient(mockKernel, routing);
+  return new ProxyKernelClient(unavailableKernel, routing);
 }
 
 // --- STARTUP LOGIC ---

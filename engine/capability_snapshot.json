@@ -5,6 +5,7 @@
   "entries": [
     { "capability": "execute.evil_not_allowed", "version": "1.0.0" },
     { "capability": "execute.kernel_bridge", "version": "1.0.0" },
+    { "capability": "search_files", "version": "1.0.0" },
     { "capability": "memory.read", "version": "1.0.0" },
     { "capability": "memory.write", "version": "1.0.0" },
     { "capability": "hai.particle.update", "version": "1.0.0" },

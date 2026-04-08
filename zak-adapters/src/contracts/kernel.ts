@@ -14,6 +14,12 @@ export interface KernelResult<O = unknown> {
       nonceHash: string;
       routePlanHash?: string;
   };
+  runtime?: {
+      admittedCapability?: string;
+      capabilityVersion?: string;
+      admitReceiptId?: string;
+      executeReceiptId?: string;
+  };
   output?: O;
   error?: string;
 }
