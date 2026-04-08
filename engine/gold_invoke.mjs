@@ -120,6 +120,40 @@ function executeReadFile(payload) {
   };
 }
 
+function executeListFiles(payload) {
+  const capabilityRequest = payload && typeof payload === "object" ? payload.capability_request : null;
+  const workspaceSnapshot = payload && typeof payload === "object" ? payload.workspace_snapshot : null;
+
+  if (!capabilityRequest || typeof capabilityRequest !== "object") {
+    return deny("missing_capability_request");
+  }
+  if (!workspaceSnapshot || typeof workspaceSnapshot !== "object") {
+    return deny("missing_workspace_snapshot");
+  }
+
+  const files = Array.isArray(workspaceSnapshot.files) ? workspaceSnapshot.files : null;
+  if (!files || !files.every((item) => typeof item === "string")) {
+    return deny("invalid_workspace_files");
+  }
+
+  return {
+    ok: true,
+    outcome: "success",
+    output: {
+      capability: "list_files",
+      authorityContextId:
+        typeof workspaceSnapshot.authority_context_id === "string"
+          ? workspaceSnapshot.authority_context_id
+          : null,
+      workspaceName:
+        typeof workspaceSnapshot.workspace_name === "string"
+          ? workspaceSnapshot.workspace_name
+          : null,
+      files,
+    },
+  };
+}
+
 function executeCommitEdit(payload) {
   const capabilityRequest = payload && typeof payload === "object" ? payload.capability_request : null;
   const input = capabilityRequest && typeof capabilityRequest === "object" ? capabilityRequest.input : null;
@@ -292,6 +326,8 @@ function main() {
     let out;
     if (requestedCapability === "search_files") {
       out = executeSearchFiles(env.payload);
+    } else if (requestedCapability === "list_files") {
+      out = executeListFiles(env.payload);
     } else if (requestedCapability === "commit_edit") {
       out = executeCommitEdit(env.payload);
     } else if (requestedCapability === "read_file") {

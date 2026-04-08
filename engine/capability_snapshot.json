@@ -7,6 +7,7 @@
     { "capability": "execute.kernel_bridge", "version": "1.0.0" },
     { "capability": "conversation.respond", "version": "1.0.0" },
     { "capability": "commit_edit", "version": "1.0.0" },
+    { "capability": "list_files", "version": "1.0.0" },
     { "capability": "read_file", "version": "1.0.0" },
     { "capability": "search_files", "version": "1.0.0" },
     { "capability": "memory.read", "version": "1.0.0" },
