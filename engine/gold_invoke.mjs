@@ -16,6 +16,21 @@ function deny(error) {
   return { ok: false, error, outcome: "denied" };
 }
 
+function extractChatContent(message) {
+  if (!message || message.content == null) return "";
+  if (typeof message.content === "string") return message.content;
+  if (Array.isArray(message.content)) {
+    return message.content
+      .map((part) => {
+        if (typeof part === "string") return part;
+        if (part && typeof part === "object" && typeof part.text === "string") return part.text;
+        return "";
+      })
+      .join("");
+  }
+  return "";
+}
+
 function executeSearchFiles(payload) {
   const capabilityRequest = payload && typeof payload === "object" ? payload.capability_request : null;
   const workspaceSnapshot = payload && typeof payload === "object" ? payload.workspace_snapshot : null;
@@ -60,11 +75,98 @@ function executeSearchFiles(payload) {
   };
 }
 
+async function executeConversationRespond(payload) {
+  const capabilityRequest = payload && typeof payload === "object" ? payload.capability_request : null;
+  if (!capabilityRequest || typeof capabilityRequest !== "object") {
+    return deny("missing_capability_request");
+  }
+
+  const input = capabilityRequest.input;
+  const prompt = input && typeof input === "object" ? input.prompt : null;
+  const history = input && typeof input === "object" && Array.isArray(input.history) ? input.history : [];
+
+  if (typeof prompt !== "string" || prompt.trim().length === 0) {
+    return deny("invalid_prompt");
+  }
+
+  const openRouterKey = process.env.OPENROUTER_API_KEY?.trim();
+  const openAiKey = process.env.OPENAI_API_KEY?.trim();
+  if (!openRouterKey && !openAiKey) {
+    return deny("llm_credentials_missing");
+  }
+
+  const systemPrompt =
+    typeof process.env.ZAKAI_SYSTEM_PROMPT === "string" && process.env.ZAKAI_SYSTEM_PROMPT.trim().length > 0
+      ? process.env.ZAKAI_SYSTEM_PROMPT.trim()
+      : "You are ZAKAI inside the governed runtime. Answer directly, conversationally, and concisely. Do not claim to have executed tools unless the runtime executed them.";
+
+  const priorMessages = history
+    .filter((entry) => entry && typeof entry === "object")
+    .flatMap((entry) => {
+      const role = entry.role === "assistant" ? "assistant" : "user";
+      const content = typeof entry.content === "string" ? entry.content : "";
+      return content.trim().length > 0 ? [{ role, content }] : [];
+    });
+
+  const useOpenRouter = Boolean(openRouterKey);
+  const url = useOpenRouter
+    ? `${process.env.OPENROUTER_BASE_URL ?? "https://openrouter.ai/api/v1"}/chat/completions`
+    : "https://api.openai.com/v1/chat/completions";
+  const model = useOpenRouter
+    ? (process.env.OPENROUTER_MODEL ?? "openrouter/free")
+    : (process.env.OPENAI_MODEL ?? "gpt-4o-mini");
+
+  const res = await fetch(url, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${useOpenRouter ? openRouterKey : openAiKey}`,
+      ...(useOpenRouter
+        ? {
+            "HTTP-Referer": process.env.OPENROUTER_HTTP_REFERER ?? "https://github.com/harmonicfutures/zak-ai",
+            "X-Title": process.env.OPENROUTER_APP_TITLE ?? "ZAKAI-runtime",
+          }
+        : {}),
+    },
+    body: JSON.stringify({
+      model,
+      messages: [
+        { role: "system", content: systemPrompt },
+        ...priorMessages,
+        { role: "user", content: prompt },
+      ],
+      temperature: 0.2,
+    }),
+  });
+
+  if (!res.ok) {
+    const text = await res.text().catch(() => "");
+    return deny(`llm_http_${res.status}${text ? `:${text.slice(0, 160)}` : ""}`);
+  }
+
+  const json = await res.json();
+  const text = extractChatContent(json?.choices?.[0]?.message);
+  if (!text || text.trim().length === 0) {
+    return deny("empty_model_output");
+  }
+
+  return {
+    ok: true,
+    outcome: "success",
+    output: {
+      capability: "conversation.respond",
+      reply: text.trim(),
+      provider: useOpenRouter ? "openrouter" : "openai",
+      model,
+    },
+  };
+}
+
 function main() {
   let stdin = "";
   process.stdin.setEncoding("utf8");
   process.stdin.on("data", (c) => (stdin += c));
-  process.stdin.on("end", () => {
+  process.stdin.on("end", async () => {
     let body;
     try {
       body = JSON.parse(stdin);
@@ -104,6 +206,8 @@ function main() {
     let out;
     if (requestedCapability === "search_files") {
       out = executeSearchFiles(env.payload);
+    } else if (requestedCapability === "conversation.respond") {
+      out = await executeConversationRespond(env.payload);
     } else {
       out = {
         ok: true,
